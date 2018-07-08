@@ -4,10 +4,12 @@ from django.template import loader
 from django.shortcuts import render
 import grakn
 
+client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
+
 # Create your views here.
 
-def index(request):
-	graknData=['The Grakn data 1', 'The Grakn Data 2']
+def index(request,client):
+	graknData=client.execute('match $x isa company, has id $idx; get idx;')
 	context = {'graknData': graknData}
 	return render(request, 'interface/index.html', context)
 	# database access here
