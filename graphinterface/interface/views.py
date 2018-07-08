@@ -9,7 +9,7 @@ client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
 # Create your views here.
 
 def index(request):
-	graknData=client.execute('match $x isa company')
+	graknData=client.execute('match $x isa company; get;')
 	companyName=graknData[0]["name"]["value"] # dictionaries are nested structures
 	context = {'graknData': companyName}
 	return render(request, 'interface/index.html', context)
