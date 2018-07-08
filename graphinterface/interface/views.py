@@ -10,6 +10,7 @@ client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
 
 def index(request):
 	graknData=client.execute('match $x isa company, has name $name; get $name;')
+	companyName=graknData[0]["name"]["value"] # dictionaries are nested structures
 	context = {'graknData': graknData}
 	return render(request, 'interface/index.html', context)
 	# database access here
