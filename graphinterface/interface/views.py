@@ -8,7 +8,7 @@ client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
 
 # Create your views here.
 
-def index(request,client):
+def index(request):
 	graknData=client.execute('match $x isa company, has id $idx; get idx;')
 	context = {'graknData': graknData}
 	return render(request, 'interface/index.html', context)
