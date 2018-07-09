@@ -2,14 +2,15 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render
-import grakn
+#import grakn
 
-client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
+#client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
 
 # Create your views here.
 
 def index(request):
-	graknData=client.execute('match $x isa company; get;')
+	graknData=['1','2']
+	#graknData=client.execute('match $x isa company; get;')
 	companyName=graknData # dictionaries are nested structures
 	context = {'graknData': companyName}
 	return render(request, 'interface/index.html', context)
