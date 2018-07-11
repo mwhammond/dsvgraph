@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render
+
+from .forms import addCompanyForm
 #import grakn
 
 #client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
@@ -9,7 +11,7 @@ from django.shortcuts import render
 # Create your views here.
 
 def index(request):
-	graknData=['1','2']
+	graknData=['1','2']	
 	#graknData=client.execute('match $x isa company; get;')
 	companyName=graknData # dictionaries are nested structures
 	context = {'graknData': companyName}
@@ -17,7 +19,20 @@ def index(request):
 	# database access here
 
 def addcompany(request):
-	return render(request, 'interface/addcompany.html')
+	if request.method == 'POST':
+		form = addCompanyForm(data=request.POST)
+		if form.is_valid():
+
+			print(form.cleaned_data)
+			projectName = form.cleaned_data['projectName']
+			print(projectName)
+
+	else:
+		form = 	addCompanyForm() 
+	return render(request, 'interface/addcompany.html', {'form': form})
+
+
+
 
 def allcompanies(request):
 	return HttpResponse("All the companies")
