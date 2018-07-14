@@ -11,5 +11,7 @@ path('addcompany', views.addcompany, name='Add Company'),
 # all companies
 path('addproject', views.addproject, name='Add Project'),
 # all companies
+path('allcompanies', views.allcompanies, name='All Companies'),
+# all companies
 ]
 

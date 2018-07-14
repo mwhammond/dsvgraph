@@ -5,19 +5,29 @@ from django.shortcuts import render
 
 from .forms import addCompanyForm
 from .forms import addProjectForm
-#import grakn
+import grakn
 
-#client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
+client = grakn.Client(uri='http://35.197.194.67:4567', keyspace='dsvgraph')
 
 # Create your views here.
 
 def index(request):
-	graknData=['1','2']	
-	#graknData=client.execute('match $x isa company; get;')
-	companyName=graknData # dictionaries are nested structures
-	context = {'graknData': companyName}
-	return render(request, 'interface/index.html', context)
+	return render(request, 'interface/index.html')
 	# database access here
+
+def allcompanies(request):
+	graknData=client.execute('match $x isa company, has name $y; offset 0; limit 30; get $y;') # dictionaries are nested structures
+	
+	# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
+	companies=[]
+	for x in graknData:
+		company={'name':x['y']['value'],'id':x['y']['id']}
+		companies.append(company)
+	#graknData[0]['y']['value']
+
+	context = {'graknData': companies}
+	return render(request, 'interface/viewall.html', context)
+	# database access here	
 
 def addcompany(request):
 	action = 'addcompany'
