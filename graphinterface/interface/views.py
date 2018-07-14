@@ -4,6 +4,7 @@ from django.template import loader
 from django.shortcuts import render
 
 from .forms import addCompanyForm
+from .forms import addProjectForm
 #import grakn
 
 #client = grakn.Client(uri='http://localhost:4567', keyspace='dsvgraph')
@@ -19,8 +20,25 @@ def index(request):
 	# database access here
 
 def addcompany(request):
+	action = 'addcompany'
 	if request.method == 'POST':
-		form = addCompanyForm(data=request.POST)
+		form = addCompanyForm(data=request.POST) 
+		if form.is_valid():
+
+			print(form.cleaned_data)
+			companyName = form.cleaned_data['companyName']
+			print(companyName)
+
+	else:
+		form = 	addCompanyForm() 
+		
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
+
+
+def addproject(request):
+	action = 'addproject'
+	if request.method == 'POST':
+		form = addProjectForm(data=request.POST) 
 		if form.is_valid():
 
 			print(form.cleaned_data)
@@ -28,15 +46,9 @@ def addcompany(request):
 			print(projectName)
 
 	else:
-		form = 	addCompanyForm() 
-	return render(request, 'interface/addcompany.html', {'form': form})
+		form = 	addProjectForm() 
+		
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action})	
 
 
 
-
-def allcompanies(request):
-	return HttpResponse("All the companies")
-
-
-def addbusinessmodel(request):	
-	return HttpResponse("Add a business model")
