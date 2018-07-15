@@ -36,16 +36,17 @@
           </ul>
         </nav>
         <h3 class="text-muted">DSV Graph</h3>
+        <h4>{{title}}</h4>
       </div>
 
-      
+      <!-- Main part of the page -->
 
       <div class="row marketing">
         <div class="col-lg-8">
           <p contenteditable="true" spellcheckker="false">
             {% if graknData %}
               {% for entity in graknData %}
-                <div>{{entity.name}} [<a href="/explore/addproject">Edit</a>, <a href="/explore/viewprojects">Delete</a>]</div>
+                <div>{{entity.name}} [<a href="/explore/addproject">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>]</div>
               {% endfor %}
             {% else %}
               <p>Nothing found :(</p>
