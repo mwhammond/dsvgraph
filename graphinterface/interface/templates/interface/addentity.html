@@ -20,7 +20,7 @@
   <body>
 
 
-    <div class="container" style="width: 735px;"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
+    <div class="container" style="width: 735px; height: 1000px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
@@ -79,6 +79,13 @@
       {% endif %}
     </div>
   {% endfor %}
+
+{% for field in form.hidden_fields %}
+
+  <div>{{ field }}</div>
+
+{% endfor %}
+
 
 
 

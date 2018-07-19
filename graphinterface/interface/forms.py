@@ -3,107 +3,76 @@ import grakn
 client = grakn.Client(uri='http://35.197.194.67:4567', keyspace='dsvgraph')
 
 
+def getEntries(type):
+
+	graknData=client.execute('match $x isa '+type+', has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
+	entries=[]
+	entries.append(("N/A","N/A"))
+	for entity in graknData:
+		entry=(entity['z']['value'],entity['y']['value'])
+		entries.append(entry)
+	technologyNames=tuple(entries)
+
+	return entries
+
 
 class addProjectForm(forms.Form):
 
-	identifier =''
+	pagetitle="Add project"
 
 	def __init__(self,*args,**kwargs):
 		
-		if 'identifier' in kwargs:
-			identifier = kwargs.pop("identifier")
-			print("edit mode")
-			if identifier is not None:
-				print("identifier exists")
+		print(kwargs)
+		identifier = kwargs.pop("identifier")
+		print("edit mode: ", identifier)
 
-				print("Edit mode")
-				savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
-				savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
-				companychoiceSelection = 'nothing' # need to set them all first
-				businessmodelchoiceSelection = 'nothing'
-				technologychoiceSelection = 'nothing'
-				marketchoiceSelection = 'nothing'
-				marketNeedSetSelection ='nothing'
+		super(addProjectForm, self).__init__(*args,**kwargs)
+		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+		self.fields['technologychoice'] = forms.ChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['marketneedchoice'] = forms.ChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
 
 
-				savedNameSelection = savedNameSelection[0]['y']['value']
-				savedSummarySelection = savedSummarySelection[0]['y']['value']
+		if identifier is not None:
+			print("id exists")
 
-				# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
-				#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='edit')
+			savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
+			companychoiceSelection = 'nothing' # GET THE ID OF THE COMPANY IT RELATES TO, IF ANY
+			businessmodelchoiceSelection = 'nothing' # GET THE ID OF THE BUSINESS MODEL SHARING THE RELATIONSHIP, IF ANY
+			technologychoiceSelection = 'nothing'
+			marketneedchoiceSelection ='nothing'
 
-				super(addProjectForm, self).__init__(*args,**kwargs)
-				#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
-				self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
-				self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+
+			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+
+			super(addProjectForm, self).__init__(*args,**kwargs)
+			#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			pagetitle="Edit project"
 
 		else:
 			print('add mode')
 			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
-			super(addProjectForm, self).__init__(*args,**kwargs)
+			#super(addProjectForm, self).__init__(*args,**kwargs)
 
 
-
-	pagetitle="Add project"
-
-	# get data for form
-
-	#print(identifier)
-
-	graknData=client.execute('match $x isa businessmodel, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	businesmodels=[]
-	entity={}
-	for entity in graknData:
-		businesmodel=(entity['z']['value'],entity['y']['value'])
-		businesmodels.append(businesmodel)
-	businesmodels=tuple(businesmodels)
-
-	
-	graknData=client.execute('match $x isa company, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	companies=[]
-	entity={}
-	for entity in graknData:
-		company=(entity['z']['value'],entity['y']['value'])
-		companies.append(company)
-	companyNames=tuple(companies)
-
-	
-
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	markets=[]
-	entity={}
-	for entity in graknData:
-		market=(entity['z']['value'],entity['y']['value'])
-		markets.append(market)	
-	marketNames=tuple(markets)
-
-
-	graknData=client.execute('match $x isa technology, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	technologies=[]
-	entity={}
-	for entity in graknData:
-		technology=(entity['z']['value'],entity['y']['value'])
-		technologies.append(technology)
-	technologyNames=tuple(technologies)		
-
-	
-	graknData=client.execute('match $x isa marketneed, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	marketneeds=[]
-	entity={}
-	for entity in graknData:
-		marketneed=(entity['z']['value'],entity['y']['value'])
-		marketneeds.append(marketneed)
-	marketneedsNames=tuple(marketneeds)	
+	# get static (rather than edit) data for form
 
 
 	name = forms.CharField(label="Project title", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
 
-	companychoice = forms.ChoiceField(label='Company owner', choices=companyNames, required=False)
-	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=businesmodels, required=False)
-	technologychoice = forms.ChoiceField(label='Add Technology', choices=technologyNames, required=False)
-	marketchoice = forms.ChoiceField(label='Specific market', choices=marketNames, required=False)
-	marketNeedSet = forms.ChoiceField(label='Market Need Set', choices=marketneedsNames, required=False)
+	companychoice = forms.ChoiceField(label='Company owner', choices=[], required=False)
+	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=[], required=False)
+	technologychoice = forms.ChoiceField(label='Add Technology', choices=[], required=False)
+	marketneedchoice = forms.ChoiceField(label='Market Need Set', choices=[], required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 
@@ -112,20 +81,34 @@ class addProjectForm(forms.Form):
 
 class addCompanyForm(forms.Form):
 
-	pagetitle="Add Company"
+	pagetitle="Add Company"	
 
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-	markets=[]
-	for entity in graknData:
-		market=(entity['z']['value'],entity['y']['value'])
-		markets.append(market)
-	marketNames=tuple(markets)
+	def __init__(self,*args,**kwargs):
+		
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop("identifier")
+			print("edit mode")
+			if identifier is not None:
+				print("identifier exists in form")
+				savedNameSelection = graknData=client.execute('match $x isa company, has name $y, has identifier "' +identifier+'"; get;')
+				savedSummarySelection = graknData=client.execute('match $x isa company, has summary $y, has identifier "' +identifier+'"; get;')	
+				savedNameSelection = savedNameSelection[0]['y']['value']
+				savedSummarySelection = savedSummarySelection[0]['y']['value']
+				
+				super(addCompanyForm, self).__init__(*args,**kwargs)
+				self.fields['mode'] = forms.CharField(widget = forms.HiddenInput(), max_length=100, initial=identifier, required=False)
+				self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+				self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+				pagetitle="Edit Company"	
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+			super(addCompanyForm, self).__init__(*args,**kwargs)	
 
+	
 	name = forms.CharField(label="Company name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	#protocompany = forms.BooleanField(label='Protocompany', required=False)
-	marketchoice = forms.ChoiceField(label='Sits within market', choices=marketNames, required=False)
-
+	mode = forms.CharField(widget = forms.HiddenInput(),initial='identifer not determined')
 
 
 
@@ -134,64 +117,87 @@ class addMarketNeedForm(forms.Form):
 
 	pagetitle="Add Market Need"
 
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-	markets=[]
-	for entity in graknData:
-		market=(entity['z']['value'],entity['y']['value'])
-		markets.append(market)
-	marketNames=tuple(markets)
 
-	name = forms.CharField(label="Name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	#protocompany = forms.BooleanField(label='Protocompany', required=False)
-	marketchoice = forms.ChoiceField(label='Sits within market', choices=marketNames, required=False)
+	def __init__(self,*args,**kwargs):
 
+		identifier=None
+		if 'identifier' in kwargs:	
+			identifier = kwargs.pop("identifier")
+
+		super(addMarketNeedForm, self).__init__(*args,**kwargs)
+		self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+
+		if identifier is not None:			
+			print("edit mode")
+			savedNameSelection = graknData=client.execute('match $x isa marketneed, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa marketneed, has summary $y, has identifier "' +identifier+'"; get;')
+			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			super(addMarketNeedForm, self).__init__(*args,**kwargs)
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			pagetitle="Edit Market Need"
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+			#super(addMarketNeedForm, self).__init__(*args,**kwargs)	
+
+
+	name = forms.CharField(label="Project title", max_length=100)
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
+	marketchoice = forms.ChoiceField(label='Sits within market', choices=[], required=False)
+
+					
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 class addRiskForm(forms.Form):
 
 	pagetitle="Add Risk / Impact factor"
 
-	graknData=client.execute('match $x isa businessmodel, has name $y, has identifier $z; get;') # dictionaries are nested structures
+	def __init__(self,*args,**kwargs):
 
-	businesmodels=[]
-	businesmodels.append(("N/A","N/A"))
-	entity={}
-	for entity in graknData:
-		businesmodel=(entity['z']['value'],entity['y']['value'])
-		businesmodels.append(businesmodel)
-	businesmodels=tuple(businesmodels)
+		identifier=None
+		if 'identifier' in kwargs:	
+			identifier = kwargs.pop("identifier")
+
+		super(addRiskForm, self).__init__(*args,**kwargs)
+		self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market:', choices=getEntries('market'), required=False)
+		self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False)
+		self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False)
 	
+		if identifier is not None:
 
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	markets=[]
-	markets.append(("N/A","N/A"))
-	entity={}
-	for entity in graknData:
-		market=(entity['z']['value'],entity['y']['value'])
-		markets.append(market)	
-	marketNames=tuple(markets)
+			print("Edit mode")
+			savedNameSelection = graknData=client.execute('match $x isa risk, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa risk, has summary $y, has identifier "' +identifier+'"; get;')
+			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			super(addRiskForm, self).__init__(*args,**kwargs)
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			# UPDATE TOP BUSINESS MODEL FIELD !!!!!!!!!!!!!!!!!!!!!!!!!!!1
+			#!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			pagetitle="Edit risk"
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+				
 
 
-	graknData=client.execute('match $x isa technology, has name $y, has identifier $z; get;') # dictionaries are nested structures
-	technologies=[]
-	technologies.append(("N/A","N/A"))
-	entity={}
-	for entity in graknData:
-		technology=(entity['z']['value'],entity['y']['value'])
-		technologies.append(technology)
-	technologyNames=tuple(technologies)		
-
-	
-
+	ratings = [(5.0,5.0),(4.0,4.0),(3.0,3.0),(2.0,2.0),(1.0,1.0),(-1.0,-1.0),(-2.0,-2.0),(-3.0,-3.0),(-4.0,-4.0),(-5.0,-5.0)]	
 
 	name = forms.CharField(label="Name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	#protocompany = forms.BooleanField(label='Protocompany', required=False)
-	marketchoice = forms.ChoiceField(label='Effects a market:', choices=marketNames, required=False)
-	businesschoice = forms.ChoiceField(label='Effects a businessmodel:', choices=businesmodels, required=False)
-	technologychoice = forms.ChoiceField(label='Effects a technology:', choices=technologyNames, required=False)
-
+	score = forms.ChoiceField(label='rating, higher good impact, lower worse risk', choices=ratings, required=True)
+	marketchoice = forms.ChoiceField(label='Effects a market:', choices=[], required=False)
+	businesschoice = forms.ChoiceField(label='Effects a businessmodel:', choices=[], required=False)
+	technologychoice = forms.ChoiceField(label='Effects a technology:', choices=[], required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 
@@ -200,35 +206,76 @@ class addBusinessModelForm(forms.Form):
 
 	pagetitle="Add Business Model"
 
-	graknData=client.execute('match $x isa businessmodel, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-	things=[]
-	for entity in graknData:
-		thing=(entity['z']['value'],entity['y']['value'])
-		things.append(thing)
-	businessModelNames=tuple(things)
+	def __init__(self,*args,**kwargs):
+
+		identifier=None
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop("identifier")
+		super(addBusinessModelForm, self).__init__(*args,**kwargs)	
+		self.fields['top'] = forms.ChoiceField(label='Sits within model group', choices=getEntries('businessmodel'), required=False)
+		
+		if identifier is not None:
+
+			print("Edit mode")
+			savedNameSelection = graknData=client.execute('match $x isa businessmodel, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa businessmodel, has summary $y, has identifier "' +identifier+'"; get;')
+			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			super(addBusinessModelForm, self).__init__(*args,**kwargs)
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			# UPDATE TOP BUSINESS MODEL FIELD
+			pagetitle="Edit Business model"
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+			
+
 
 	name = forms.CharField(label="Business Model name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	top = forms.ChoiceField(label='Sits within model group', choices=businessModelNames, required=False)
-
-
+	top = forms.ChoiceField(label='Sits within model group', choices=[], required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 class addMarketForm(forms.Form):
 
-	pagetitle="Add Market"
+	def __init__(self,*args,**kwargs):
 
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-	things=[]
-	for entity in graknData:
-		thing=(entity['z']['value'],entity['y']['value'])
-		things.append(thing)
-	marketNames=tuple(things)
+		identifier=None
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop("identifier")
+		super(addMarketForm, self).__init__(*args,**kwargs)	
+		self.fields['top'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+
+		pagetitle="Add Market"
+
+		if identifier is not None:
+			print("identifier exists")
+
+			print("Edit mode")
+			savedNameSelection = graknData=client.execute('match $x isa market, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa market, has summary $y, has identifier "' +identifier+'"; get;')
+			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			super(addMarketForm, self).__init__(*args,**kwargs)
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			pagetitle="Edit Market"
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+			
+
 
 	name = forms.CharField(label="Market name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	top = forms.ChoiceField(label='Sits within market', choices=marketNames, required=False)
-
+	top = forms.ChoiceField(label='Sits within market', choices=[], required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 
@@ -236,13 +283,35 @@ class addTechnologyForm(forms.Form):
 
 	pagetitle="Add Technology"
 
-	graknData=client.execute('match $x isa technology, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-	things=[]
-	for entity in graknData:
-		thing=(entity['z']['value'],entity['y']['value'])
-		things.append(thing)
-	technologyNames=tuple(things)
+	def __init__(self,*args,**kwargs):
+
+		identifier=None
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop("identifier")
+		super(addTechnologyForm, self).__init__(*args,**kwargs)	
+		self.fields['technologychoice'] = forms.ChoiceField(label='part of technology group:', choices=getEntries('technology'), required=False)
+	
+		if identifier is not None:
+			print("identifier exists")
+
+			print("Edit mode")
+			savedNameSelection = graknData=client.execute('match $x isa technology, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa technology, has summary $y, has identifier "' +identifier+'"; get;')
+			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			super(addTechnologyForm, self).__init__(*args,**kwargs)
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			pagetitle="Edit Market Need"
+		else:
+			print('add mode')
+			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+			
+
 
 	name = forms.CharField(label="Technology name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	top = forms.ChoiceField(label='part of technology group:', choices=technologyNames, required=False)
+	technologychoice = forms.ChoiceField(label='part of technology group:', choices=[], required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())

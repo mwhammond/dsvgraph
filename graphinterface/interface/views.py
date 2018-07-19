@@ -134,17 +134,37 @@ def addcompany(request):
 	if request.method == 'POST':
 		form = addCompanyForm(data=request.POST) 
 		if form.is_valid():
+
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				print('identifer exist in view')
+				print(identifier)
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
+			#marketchoice = form.cleaned_data['marketneedchoice']
 			#protocompany = form.cleaned_data['protocompany'] #NOT CURRENTLY USED
-			marketchoice = form.cleaned_data['marketchoice']
+			#marketchoice = form.cleaned_data['marketchoice'] # removed as company can sit within several markets - via products and needs
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa company, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+			#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+
+
 		#return redirect('allcompanies')
 
 	else:
-
-		form = 	addCompanyForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addCompanyForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addCompanyForm() # i.e. we've just asked for a fresh form
+	
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 	
 
@@ -155,11 +175,13 @@ def addproject(request):
 		form = addProjectForm(data=request.POST) 
 		if form.is_valid():	
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+			print("identifier:",identifier)
 
-			# READ HIDDEN FIELD TO DETERMINE WHETHER SOMEHING WITH THAT ID NEEDS DELETING FIRST, IF EMPTY IS'TS NEW
-
-			#mode = form.cleaned_data['mode']
-			#print("mode:",mode)
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
 
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
@@ -173,8 +195,8 @@ def addproject(request):
 			client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
 
 			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (usestech: $y, usedinproduct: $x) isa technologystack;')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (solvedby: $y, need: $x) isa markethasneed;')
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
 
 
@@ -183,7 +205,7 @@ def addproject(request):
 	else:
 		identifier = request.GET.get('id')
 		if identifier:
-			form = 	addProjectForm(identifier=identifier) #i.e. we've asked to edit
+			form = 	addProjectForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
 		else:
 			form = 	addProjectForm() # i.e. we've just asked for a fresh form
 	
@@ -205,17 +227,30 @@ def addbusinessmodel(request):
 		form = addBusinessModelForm(data=request.POST) 
 		if form.is_valid():
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
 			top = form.cleaned_data['top']
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa businessmodel, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
-			# !!!! NEEDS A MODEL TO MODEL RELATIONSHIP !!!!!
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (subbusinessmodel: $y, topbusinessmodel: $x) isa businessmodelgroup;')
+
 
 	else:
-		form = addBusinessModelForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addBusinessModelForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addBusinessModelForm() # i.e. we've just asked for a fresh form
 		
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
@@ -227,34 +262,49 @@ def addrisk(request):
 		form = addRiskForm(data=request.POST) 
 		if form.is_valid():
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
 
 			marketchoice = form.cleaned_data['marketchoice']
-			businessmodelchoice = form.cleaned_data['businesschoice']
+			businesschoice = form.cleaned_data['businesschoice']
 			technologychoice = form.cleaned_data['technologychoice']
+			rating = form.cleaned_data['score']
 
 			identifier = str(uuid.uuid4())
-			client.execute('insert $x isa risk, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+			client.execute('insert $x isa risk, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has rating '+rating+';')
 
-			if marketchoice:
+			if marketchoice is not "N/A":
 				print(marketchoice)
-				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (riskaffects: $y, riskfactor: $x) isa markethasneed;')
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (riskaffects: $y, riskfactor: $x) isa hasrisk;')
 
 
-			if businesschoice:
+			if businesschoice is not "N/A":
 				print(marketchoice)
-				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (riskaffects: $y, riskfactor: $x) isa productbusinessmodel;')
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businesschoice+'"; insert (riskaffects: $y, riskfactor: $x) isa hasrisk;')
 		
 
-			if technologychoice:
+			if technologychoice is not "N/A":
 				print(technologychoice)	
-				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (riskaffects: $y, riskfactor: $x) isa technologystack;')
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (riskaffects: $y, riskfactor: $x) isa hasrisk;')
 			
 
 
 	else:
-		form = addRiskForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addRiskForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addRiskForm() # i.e. we've just asked for a fresh form
+		
 		
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
@@ -270,18 +320,30 @@ def addmarket(request):
 		form = addMarketForm(data=request.POST) 
 		if form.is_valid():
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
 			top = form.cleaned_data['top']
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa market, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (riskaffects: $y, riskfactor: $x) isa markethasneed;')
-			# NEEDS TO BE ADAPATED TO LINK TO SELF MARKET
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (topmarket: $y, submarket: $x) isa withinmarket;')
+
 
 
 	else:
-		form = addMarketForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addMarketForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addMarketForm() # i.e. we've just asked for a fresh form
 		
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
@@ -292,18 +354,32 @@ def addmarketneed(request):
 		form = addMarketNeedForm(data=request.POST) 
 		if form.is_valid():
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
 			marketchoice = form.cleaned_data['marketchoice']
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (marketpull: $y, need: $x) isa markethasneed;')
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (marketpull: $y, need: $x) isa markethasneed;')
 
 			# relate to a market
 
 	else:
-		form = addMarketNeedForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addMarketNeedForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addMarketNeedForm() # i.e. we've just asked for a fresh form
+		
 		
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
@@ -317,21 +393,37 @@ def addtechnology(request):
 		form = addTechnologyForm(data=request.POST) 
 		if form.is_valid():
 
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
-			top = form.cleaned_data['top']
+			technologychoice = form.cleaned_data['technologychoice']
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa technology, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			##client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (riskaffects: $y, riskfactor: $x) isa technologystack;')
-			#NEEDS A LINK TO SELF TECHNOLOGY
+			if technologychoice is not "N/A":
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (toptechnology: $y, subtechnology: $x) isa technologygroup;')
 
 	else:
-		form = addTechnologyForm() 
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addTechnologyForm(identifier=identifier) #so that the form can load the existing data
+		else:
+			form = 	addTechnologyForm() # i.e. we've just asked for a fresh form
+		
 		
 	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
 
+
+# DELETE SPECIFIC ENTITY - SHOULD USE THIS FOR ALL DELETING 
 def deleteentity(request):
 	if request.method=='GET':
 		identifier = request.GET.get('id')
