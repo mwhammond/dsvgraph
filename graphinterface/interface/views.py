@@ -334,7 +334,7 @@ def addmarket(request):
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa market, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (topmarket: $y, submarket: $x) isa withinmarket;')
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (submarket: $y, topmarket: $x) isa withinmarket;')
 
 
 
@@ -409,7 +409,7 @@ def addtechnology(request):
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa technology, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
 			if technologychoice is not "N/A":
-				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (toptechnology: $y, subtechnology: $x) isa technologygroup;')
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (subtechnology: $y, toptechnology: $x) isa technologygroup;')
 
 	else:
 		identifier = request.GET.get('id')
