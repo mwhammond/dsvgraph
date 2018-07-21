@@ -163,9 +163,9 @@ class addMarketNeedForm(forms.Form):
 			savedNameSelection = savedNameSelection[0]['y']['value']
 			savedSummarySelection = savedSummarySelection[0]['y']['value']
 			if marketsizeSelection:
-				marketsizeSelection = savedNameSelection[0]['y']['value']
+				marketsizeSelection = marketsizeSelection[0]['y']['value']
 			if marketcagrSelection:
-				marketcagrSelection = savedNameSelection[0]['y']['value']
+				marketcagrSelection = marketcagrSelection[0]['y']['value']
 
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 			self.fields['name'] = forms.CharField(max_length=100, initial=savedNameSelection)
