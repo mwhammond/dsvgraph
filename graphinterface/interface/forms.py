@@ -141,39 +141,53 @@ class addMarketNeedForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 
 		identifier=None
+		pagetitle = "Add Market Need"
 		if 'identifier' in kwargs:	
 			identifier = kwargs.pop("identifier")
 
 		super(addMarketNeedForm, self).__init__(*args,**kwargs)
-		self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+		##self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
 
 		if identifier is not None:			
 			print("edit mode")
 			savedNameSelection = client.execute('match $x isa marketneed, has name $y, has identifier "' +identifier+'"; get;')
 			savedSummarySelection = client.execute('match $x isa marketneed, has summary $y, has identifier "' +identifier+'"; get;')
-			marketchoiceSelection = graknData=client.execute('match $x isa marketneed, has identifier "' +identifier+'"; (need:$x, $b); $b has identifier $d; get $d;')	
-			
+			marketchoiceSelection = client.execute('match $x isa marketneed, has identifier "' +identifier+'"; (need:$x, $b); $b has identifier $d; get $d;')	
+			marketsizeSelection = client.execute('match $x isa marketneed, has marketsize $y, has identifier "' +identifier+'"; get;')
+			marketcagrSelection = client.execute('match $x isa marketneed, has CAGR $y, has identifier "' +identifier+'"; get;')
+
 			if marketchoiceSelection:
 				marketchoiceSelection = marketchoiceSelection[0]['d']['value']
 
 			# NEEDS TO GRAB RELATIONSHIP ON MARKET WHICH NEED SITS IN
 			savedNameSelection = savedNameSelection[0]['y']['value']
 			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			if marketsizeSelection:
+				marketsizeSelection = savedNameSelection[0]['y']['value']
+			if marketcagrSelection:
+				marketcagrSelection = savedNameSelection[0]['y']['value']
+
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
-			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False,initial=marketchoiceSelection)
+			self.fields['name'] = forms.CharField(max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market',choices=getEntries('market'), required=False,initial=marketchoiceSelection)
+			self.fields['marketsize'] = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=marketsizeSelection, label= 'Specific market size in millions, number only')
+			self.fields['marketcagr'] = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=marketcagrSelection, label='CARG percent, number only dont add %')
 
-
-			pagetitle="Edit Market Need"
+			self.pagetitle="Edit Market Need"
 		else:
 			print('add mode')	
 
 
-	name = forms.CharField(label="Project title", max_length=100)
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
+	name = forms.CharField(label="Market name", max_length=100)
+	summary = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
 	marketchoice = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+	marketsize = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label= 'Specific market size in millions, number only')
+	marketcagr = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label='CARG percent, number only dont add %')
+
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+
 
 
 class addRiskForm(forms.Form):
@@ -190,9 +204,9 @@ class addRiskForm(forms.Form):
 			identifier = kwargs.pop("identifier")
 
 		super(addRiskForm, self).__init__(*args,**kwargs)
-		self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market:', choices=getEntries('market'), required=False)
-		self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False)
-		self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False)
+	#	self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market:', choices=getEntries('marketneed'), required=False)
+	#	self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False)
+	#	self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False)
 	
 		if identifier is not None:
 
@@ -201,7 +215,7 @@ class addRiskForm(forms.Form):
 			savedSummarySelection = client.execute('match $x isa risk, has summary $y, has identifier "' +identifier+'"; get;')
 			savedRiskRating = client.execute('match $x isa risk, has rating $y, has identifier "' +identifier+'"; get;')
 
-			marketchoiceSelection = client.execute('match $x isa risk, has identifier "' +identifier+'"; (riskfactor:$x, $b); $b isa market; $b has identifier $d; get $d;')		
+			marketchoiceSelection = client.execute('match $x isa risk, has identifier "' +identifier+'"; (riskfactor:$x, $b); $b isa marketneed; $b has identifier $d; get $d;')		
 			businessmodelchoiceSelection = client.execute('match $x isa risk, has identifier "' +identifier+'"; (riskfactor:$x, $b); isa businessmodel; $b has identifier $d; get $d;')	
 			technologychoiceSelection = client.execute('match $x isa risk, has identifier "' +identifier+'"; (riskfactor:$x, $b); isa technology; $b has identifier $d; get $d;')	
 
@@ -228,7 +242,7 @@ class addRiskForm(forms.Form):
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
 			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market:', choices=getEntries('market'), required=False,initial=marketchoiceSelection)
+			self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market need:', choices=getEntries('marketneed'), required=False,initial=marketchoiceSelection)
 			self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False, initial=businessmodelchoiceSelection)
 			self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False, initial=technologychoiceSelection)
 			self.fields['score'] = forms.ChoiceField(label='rating, higher good impact, lower worse risk', choices=ratings, required=True,initial=savedRiskRating)
@@ -244,9 +258,9 @@ class addRiskForm(forms.Form):
 	name = forms.CharField(label="Name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
 	score = forms.ChoiceField(label='rating, higher good impact, lower worse risk', choices=ratings, required=True)
-	marketchoice = forms.ChoiceField(label='Effects a market:', choices=[], required=False)
-	businesschoice = forms.ChoiceField(label='Effects a businessmodel:', choices=[], required=False)
-	technologychoice = forms.ChoiceField(label='Effects a technology:', choices=[], required=False)
+	marketchoice = forms.ChoiceField(label='Effects a market need:', choices=getEntries('marketneed'), required=False)
+	businesschoice = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False)
+	technologychoice = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False)
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
@@ -295,51 +309,51 @@ class addBusinessModelForm(forms.Form):
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
-class addMarketForm(forms.Form):
+#class addMarketForm(forms.Form):
 
-	def __init__(self,*args,**kwargs):
+#	def __init__(self,*args,**kwargs):
 
-		identifier=None
-		if 'identifier' in kwargs:
-			identifier = kwargs.pop("identifier")
-		super(addMarketForm, self).__init__(*args,**kwargs)	
-
-
-
-		pagetitle="Add Market"
-
-		if identifier is not None:
-			print("identifier exists")
-
-			print("Edit mode")
-			savedNameSelection = graknData=client.execute('match $x isa market, has name $y, has identifier "' +identifier+'"; get;')
-			savedSummarySelection = graknData=client.execute('match $x isa market, has summary $y, has identifier "' +identifier+'"; get;')
-			marketchoiceSelection = client.execute('match $x isa market, has identifier "' +identifier+'"; (topmarket:$x, $b); $b has identifier $d; get $d;')	
-			
-			if marketchoiceSelection:
-				marketchoiceSelection=marketchoiceSelection[0]['d']['value']	
-
-			savedNameSelection = savedNameSelection[0]['y']['value']
-			savedSummarySelection = savedSummarySelection[0]['y']['value']
+#		identifier=None
+#		if 'identifier' in kwargs:
+#			identifier = kwargs.pop("identifier")
+#		super(addMarketForm, self).__init__(*args,**kwargs)	
 
 
-			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
-			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			self.fields['top'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False, initial=marketchoiceSelection)
 
+#		pagetitle="Add Market"
 
-			pagetitle="Edit Market"
-		else:
-			print('add mode')
-			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
-			
-
-
-	name = forms.CharField(label="Market name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	top = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
-	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+#		if identifier is not None:
+#			print("identifier exists")
+#
+#			print("Edit mode")
+#			savedNameSelection = graknData=client.execute('match $x isa market, has name $y, has identifier "' +identifier+'"; get;')
+#			savedSummarySelection = graknData=client.execute('match $x isa market, has summary $y, has identifier "' +identifier+'"; get;')
+#			marketchoiceSelection = client.execute('match $x isa market, has identifier "' +identifier+'"; (topmarket:$x, $b); $b has identifier $d; get $d;')	
+#			
+#			if marketchoiceSelection:
+#				marketchoiceSelection=marketchoiceSelection[0]['d']['value']	
+#
+##			savedNameSelection = savedNameSelection[0]['y']['value']
+#			savedSummarySelection = savedSummarySelection[0]['y']['value']
+#
+#
+#			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+#			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+##			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+#			self.fields['top'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False, initial=marketchoiceSelection)
+#
+#
+#			pagetitle="Edit Market"
+#		else:
+##			print('add mode')
+#			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
+#			
+#
+##
+#	name = forms.CharField(label="Market name", max_length=100)	
+#	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+#	top = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+#	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 

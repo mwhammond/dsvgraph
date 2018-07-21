@@ -7,7 +7,7 @@ from .forms import addCompanyForm
 from .forms import addProjectForm
 from .forms import addTechnologyForm
 from .forms import addBusinessModelForm
-from .forms import addMarketForm
+#from .forms import addMarketForm
 from .forms import addMarketNeedForm
 from .forms import addRiskForm
 
@@ -36,6 +36,33 @@ def allcompanies(request):
 	context = {'graknData': companies, 'title': 'All Companies','link': 'addcompany'}
 	return render(request, 'interface/viewall.html', context)
 	# database access here	
+
+
+def marketanalysis(request):
+	identifier = request.GET.get('id')
+	graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier $z, has marketsize $m, has CAGR $c; get $n, $s, $m, $c;') # dictionaries are nested structures
+	
+	# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
+	#companies=[]
+	#for entry in graknData:
+	#	company={'name':entry['y']['value'],'id':entry['z']['value']}
+	#	companies.append(company)
+	name = graknData[0]['n']['value']
+	summary = graknData[0]['s']['value']
+	size = graknData[0]['m']['value']
+	CAGR = graknData[0]['c']['value']
+	customers = ['customer 1', 'customer 2']
+	competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
+	directrisks = ['direct risk 1', 'direct risk 2']
+	relatedrisks = ['related risk1', 'related risk 2']
+
+
+	marketneeddata = {'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitors, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
+
+	context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
+	return render(request, 'interface/analysis.html', context)
+	# database access here	
+
 
 
 def allrisk(request):
@@ -81,18 +108,18 @@ def allbusinessmodels(request):
 	# database access here		
 
 
-def allmarkets(request):
-	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
+#def allmarkets(request):
+#	graknData=client.execute('match $x isa market, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
 	
 	# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
-	allentities=[]
-	for x in graknData:
-		singleentity={'name':x['y']['value'],'id':x['z']['value']}
-		allentities.append(singleentity)
+#	allentities=[]
+#	for x in graknData:
+#		singleentity={'name':x['y']['value'],'id':x['z']['value']}
+#		allentities.append(singleentity)
 
-	context = {'graknData': allentities,'title': 'All Markets','link': 'addmarket'}
-	return render(request, 'interface/viewall.html', context)
-	# database access here	
+#	context = {'graknData': allentities,'title': 'All Markets','link': 'addmarket', 'analysislink': 'marketanalysis'}
+#	return render(request, 'interface/viewall.html', context)
+#	# database access here	
 
 
 
@@ -105,7 +132,7 @@ def allmarketneeds(request):
 		singleentity={'name':x['y']['value'],'id':x['z']['value']}
 		allentities.append(singleentity)
 
-	context = {'graknData': allentities,'title': 'All Market Needs','link': 'addmarketneed'}
+	context = {'graknData': allentities,'title': 'All Market Needs','link': 'addmarketneed','analysislink': 'marketanalysis'}
 	return render(request, 'interface/viewall.html', context)
 	# database access here	
 
@@ -314,42 +341,43 @@ def addrisk(request):
 # market
 
 
-def addmarket(request):
-	action = 'addmarket'
-	if request.method == 'POST':
-		form = addMarketForm(data=request.POST) 
-		if form.is_valid():
+#def addmarket(request):
+#	action = 'addmarket'
+#	if request.method == 'POST':
+#		form = addMarketForm(data=request.POST) 
+#		if form.is_valid():
 
-			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+#			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
-			if identifier: # i.e. we're in edit mode delete previous entity first
-				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
-				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
-				print("Warning - delete before rewrite (edit mode")
-
-
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
-			top = form.cleaned_data['top']
-
-			identifier = str(uuid.uuid4())
-			client.execute('insert $x isa market, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (submarket: $y, topmarket: $x) isa withinmarket;')
+#			if identifier: # i.e. we're in edit mode delete previous entity first
+#				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+#				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+#				print("Warning - delete before rewrite (edit mode")
 
 
+#			name = form.cleaned_data['name']
+#			summary = form.cleaned_data['summary']
+#			top = form.cleaned_data['top']
 
-	else:
-		identifier = request.GET.get('id')
-		if identifier:
-			form = 	addMarketForm(identifier=identifier) #so that the form can load the existing data
-		else:
-			form = 	addMarketForm() # i.e. we've just asked for a fresh form
+#			identifier = str(uuid.uuid4())
+#			client.execute('insert $x isa market, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+#			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+top+'"; insert (submarket: $y, topmarket: $x) isa withinmarket;')
+
+
+
+#	else:
+#		identifier = request.GET.get('id')
+#		if identifier:
+#			form = 	addMarketForm(identifier=identifier) #so that the form can load the existing data
+#		else:
+#			form = 	addMarketForm() # i.e. we've just asked for a fresh form
 		
-	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
+#	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
 
 def addmarketneed(request):
 	action = 'addmarketneed'
+	pagetitle = "Add Market Need"
 	if request.method == 'POST':
 		form = addMarketNeedForm(data=request.POST) 
 		if form.is_valid():
@@ -366,9 +394,11 @@ def addmarketneed(request):
 			name = form.cleaned_data['name']
 			summary = form.cleaned_data['summary']
 			marketchoice = form.cleaned_data['marketchoice']
+			marketsize = form.cleaned_data['marketsize']
+			marketcagr = form.cleaned_data['marketcagr']
 
 			identifier = str(uuid.uuid4())
-			client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+			client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'";')
 			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (marketpull: $y, need: $x) isa markethasneed;')
 
 			# relate to a market
@@ -381,7 +411,7 @@ def addmarketneed(request):
 			form = 	addMarketNeedForm() # i.e. we've just asked for a fresh form
 		
 		
-	return render(request, 'interface/addentity.html', {'form': form, 'action': action})
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle})
 
 
 

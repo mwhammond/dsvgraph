@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>DSV Graph</title>
+
+ <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+ 
+  </head>
+
+  <body>
+
+    
+    <div class="container" style="width: 735px; height: 1200px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
+
+    <div class="container">
+      <div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills float-right">
+            <li class="nav-item">
+              
+            </li>
+            <li class="nav-item">
+              
+            </li>
+            <li class="nav-item">
+              
+            </li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">DSV KG</h3>
+        <h2>{{title}}</h2>
+        <br>
+      </div>
+
+      <!-- Main part of the page -->
+
+    <!--  <div><a href="/explore/{{link}}">Add new</a></div> -->
+
+      <div class="row marketing">
+        <div class="col-lg-12">
+          <p contenteditable="true" spellcheckker="false">
+
+            <div><h4>Market need summary</h4></div>
+            <div><b><p>Name:</b> {{marketneeddata.name}}</p></div>
+            <div><p><b>Summary of specific need:</b> {{marketneeddata.summary}}</p></div>
+            <div><p><b>Specific Market size:</b> £{{marketneeddata.size}} million</p></div>
+            <div><p><b>CAGR:</b> {{marketneeddata.CAGR}}%</p></div>
+            <br>
+            <div><h4>Customers</h4></div>
+            <br>
+            <p>{{marketneeddata.customers}}</p>
+             <div>-----------------------</div>
+            <br>
+
+            <div><h4>Competition in market</h4></div>
+            <br>
+            <p>{{marketneeddata.competitors}}</p>
+            <div>-----------------------</div>
+            <br>
+            <div><h4>Key associated risks and drivers directly in market</h4></div>
+            <br>
+            <p>{{marketneeddata.directrisks}}</p>
+             <div>-----------------------</div>
+
+            <br>
+            <div><h4>Key associated risks and drivers in related markets</h4></div>
+            <br>
+            <p>{{marketneeddata.relatedrisks}}</p>
+            <div>-----------------------</div>
+            <br>
+            <div><h4>Funders truly in this market for this specific need</h4></div>
+            <br>
+            <p>Big VC, Big grant co</p>
+
+
+<!--
+            {% if graknData %}
+              {% for entity in graknData %}
+                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>]</div>
+              {% endfor %}
+            {% else %}
+              <p>Nothing found :(</p>
+            {% endif %}
+
+            </p>
+-->
+
+
+
+
+      </div>
+
+      <footer class="footer">
+ 
+      </footer>
+
+    </div> <!-- /container -->
+     </div> <!-- /container -->
+  
+
+</body>
+</html>

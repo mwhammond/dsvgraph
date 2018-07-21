@@ -48,7 +48,9 @@
           <p contenteditable="true" spellcheckker="false">
             {% if graknData %}
               {% for entity in graknData %}
-                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>]</div>
+                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>, <a href="/explore/{{analysislink}}?id={{entity.id}}">Analysis</a>]
+
+                </div>
               {% endfor %}
             {% else %}
               <p>Nothing found :(</p>
