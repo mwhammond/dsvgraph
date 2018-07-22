@@ -62,16 +62,15 @@ def marketanalysis(request):
 		
 		competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
 
+		competitorsarray=[]
 		if competitors:
-			competitorsarray=[]
 			for comp in competitors:
 				competitorsarray.append({'name':comp['n']['value'],'id':comp['i']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
 
 
-
+		directriskssarray=[]		
 		directrisks=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (riskaffects:$x, $b); $b has name $n, has summary $s, has identifier $i, has rating $r; get $n, $i, $s, $r;')
 		if directrisks:
-			directriskssarray=[]
 			for drisk in directrisks:
 				directriskssarray.append({'name':drisk['n']['value'],'id':drisk['i']['value'],'summary':drisk['s']['value'],'rating':drisk['r']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!		
 				print(directriskssarray)
