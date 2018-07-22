@@ -101,8 +101,10 @@ class addCompanyForm(forms.Form):
 
 	pagetitle="Add Company"	
 
+
 	def __init__(self,*args,**kwargs):
 		
+		statusoptions = [(4,'Fast'),(3,'Average'),(1,'Unknown'),(0,'Dead'),(5,'Exited')]	
 		identifier=None
 		if 'identifier' in kwargs:
 			identifier = kwargs.pop("identifier")
@@ -112,23 +114,33 @@ class addCompanyForm(forms.Form):
 		if identifier is not None:
 			print("identifier exists in form")
 			savedNameSelection = graknData=client.execute('match $x isa company, has name $y, has identifier "' +identifier+'"; get;')
-			savedSummarySelection = graknData=client.execute('match $x isa company, has summary $y, has identifier "' +identifier+'"; get;')	
+			savedSummarySelection = graknData=client.execute('match $x isa company, has summary $y, has identifier "' +identifier+'"; get;')
+			savedstatusSelection = graknData=client.execute('match $x isa company, has status $y, has identifier "' +identifier+'"; get;')
+
 			savedNameSelection = savedNameSelection[0]['y']['value']
 			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			
+				
+
 			
 			
 			self.fields['mode'] = forms.CharField(widget = forms.HiddenInput(), max_length=100, initial=identifier, required=False)
 			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
 			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			if savedstatusSelection:
+				self.fields['status'] = forms.ChoiceField(initial=savedstatusSelection)	
+
 			pagetitle="Edit Company"	
 		else:
 			print('add mode')
 			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
 			super(addCompanyForm, self).__init__(*args,**kwargs)	
 
-	
+	statusoptions = [(4,'Fast'),(3,'Average'),(1,'Unknown'),(0,'Dead'),(5,'Exited')]		
 	name = forms.CharField(label="Company name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	status = forms.ChoiceField(label='Company status', choices=statusoptions, required=False)
+
 	mode = forms.CharField(widget = forms.HiddenInput(),initial='identifer not determined')
 
 
@@ -171,7 +183,7 @@ class addMarketNeedForm(forms.Form):
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 			self.fields['name'] = forms.CharField(max_length=100, initial=savedNameSelection)
 			self.fields['summary'] = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market',choices=getEntries('market'), required=False,initial=marketchoiceSelection)
+			self.fields['marketchoice'] = forms.ChoiceField(label='Sits within wider market need',choices=getEntries('marketneed'), required=False,initial=marketchoiceSelection)
 			self.fields['marketsize'] = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=marketsizeSelection, label= 'Specific market size in millions, number only')
 			self.fields['marketcagr'] = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=marketcagrSelection, label='CARG percent, number only dont add %')
 
@@ -182,7 +194,7 @@ class addMarketNeedForm(forms.Form):
 
 	name = forms.CharField(label="Market name", max_length=100)
 	summary = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
-	marketchoice = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+	marketchoice = forms.ChoiceField(label='Sits within wider market need', choices=getEntries('marketneed'), required=False)
 	marketsize = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label= 'Specific market size in millions, number only')
 	marketcagr = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label='CARG percent, number only dont add %')
 

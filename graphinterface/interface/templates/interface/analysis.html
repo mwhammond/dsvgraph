@@ -91,6 +91,7 @@
             {% if marketneeddata.directrisks %}
               {% for m in marketneeddata.directrisks %}
                 <div> <a href="addrisk?id={{m.id}}">{{m.name}}</a> | {{m.summary}} | <b>Ranking: {{m.rating}}</b> | </div>
+                <br>
               {% endfor %}
             {% else %}
               <p>No risks found, what a great day!</p>

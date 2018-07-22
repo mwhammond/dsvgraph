@@ -205,6 +205,11 @@ def addcompany(request):
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa company, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
 			#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+			status = form.cleaned_data['status']
+			if status:
+				print("tpye: ", type(status))
+				#client.execute('insert $x isa company, has identifier "' +identifier+'", has status "'+status+'";')
+				# THIS IS CURRENTLY BROKEN, DOESN'T THINK IT'S OF TYPE LONG DESPIT THE FACT THAT DOUBLE WORKS BELOW, COULD JUST CHANGE TYPE TO DOUBLE
 
 
 		#return redirect('allcompanies')
@@ -433,7 +438,7 @@ def addmarketneed(request):
 
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'";')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (marketpull: $y, need: $x) isa markethasneed;')
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (topmarket: $y, submarket: $x) isa withinmarket;')
 
 			# relate to a market
 
