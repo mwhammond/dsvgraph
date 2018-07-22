@@ -18,14 +18,12 @@
   <body>
 
     
-    <div class="container" style="width: 735px; height: 1200px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
-
-    <div class="container">
+    <div class="container" style="width: 735px; height: 1500px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
             <li class="nav-item">
-              
+              <a class="nav-link active" href="/explore">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
               
@@ -36,9 +34,10 @@
           </ul>
         </nav>
         <h3 class="text-muted">DSV KG</h3>
-        <h2>{{title}}</h2>
-        <br>
       </div>
+
+        <h2>{{title}}</h2>
+
 
       <!-- Main part of the page -->
 
@@ -47,35 +46,53 @@
       <div class="row marketing">
         <div class="col-lg-12">
           <p contenteditable="true" spellcheckker="false">
+            <div><h3>The {{marketneeddata.name}} Market</h3></div>
 
-            <div><h4>Market need summary</h4></div>
-            <div><b><p>Name:</b> {{marketneeddata.name}}</p></div>
-            <div><p><b>Summary of specific need:</b> {{marketneeddata.summary}}</p></div>
+            
+            <div><p>{{marketneeddata.summary}}</p></div>
+
             <div><p><b>Specific Market size:</b> £{{marketneeddata.size}} million</p></div>
             <div><p><b>CAGR:</b> {{marketneeddata.CAGR}}%</p></div>
             <div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>
+            <a href="addmarketneed?id={{marketneeddata.id}}">Edit Description</a>
             <br>
+            <br>
+             <div><hr class="style4"></div>
             <div><h4>Customers</h4></div>
             <br>
             <p>{{marketneeddata.customers}}</p>
-             <div>-----------------------</div>
+
+             <div><hr class="style4"></div>
             <br>
 
             <div><h4>Competition in market</h4></div>
+            <p><a href="addcompany">Add Company</a> | <a href="addproject">Add Project</a></p>
             <br>
-            <p><a href="addproject?id=9ae1f61c-3738-437d-b9d7-40c023994d24">{{marketneeddata.competitors}}</a></p>
-            <div>-----------------------</div>
+            {% if marketneeddata.competitors %}
+              {% for entity in marketneeddata.competitors %}
+                <div> <b><a href="addproject?id={{entity.id}}">{{entity.name}}</a></b> | Short description | Tech stack | Status | </div>
+              {% endfor %}
+            {% else %}
+              <p>No competition found, chucks away!</p>
+            {% endif %} 
+
+
+
+
+            </p>
+            <div><hr class="style4"></div>
             <br>
             <div><h4>Key associated risks and drivers directly in market</h4></div>
+            <p><a href="addrisk">Add risk / postitive impact</a></p>
             <br>
             <p>{{marketneeddata.directrisks}}</p>
-             <div>-----------------------</div>
+             <div><hr class="style4"></div>
 
             <br>
             <div><h4>Key associated risks and drivers in related markets</h4></div>
             <br>
             <p>{{marketneeddata.relatedrisks}}</p>
-            <div>-----------------------</div>
+            <div><hr class="style4"></div>
             <br>
             <div><h4>Funders truly in this market for this specific need</h4></div>
             <br>

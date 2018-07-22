@@ -30,8 +30,8 @@ class addProjectForm(forms.Form):
 		super(addProjectForm, self).__init__(*args,**kwargs)
 		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
 		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
-		self.fields['technologychoice'] = forms.ChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
-		self.fields['marketneedchoice'] = forms.ChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
 
 
 		if identifier is not None:
@@ -66,8 +66,8 @@ class addProjectForm(forms.Form):
 			
 			self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), initial=companychoiceSelection, required=False)
 			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
-			self.fields['technologychoice'] = forms.ChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
-			self.fields['marketneedchoice'] = forms.ChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
+			self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
+			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
 
 
 
@@ -85,10 +85,11 @@ class addProjectForm(forms.Form):
 	name = forms.CharField(label="Project title", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
 
-	companychoice = forms.ChoiceField(label='Company owner', choices=[], required=False)
-	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=[], required=False)
-	technologychoice = forms.ChoiceField(label='Add Technology', choices=[], required=False)
-	marketneedchoice = forms.ChoiceField(label='Market Need Set', choices=[], required=False)
+	companychoice = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+	technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 

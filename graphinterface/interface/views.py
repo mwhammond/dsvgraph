@@ -43,8 +43,9 @@ def marketanalysis(request):
 	identifier = request.GET.get('id')
 	print(identifier)
 	if identifier:
-		graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier "'+identifier+'", has marketsize $m, has CAGR $c; get;') # dictionaries are nested structures
+		graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier "'+identifier+'", has marketsize $m, has CAGR $c; get $n, $s, $m, $c;') # dictionaries are nested structures
 		
+
 		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
 		#companies=[]
 		#for entry in graknData:
@@ -56,15 +57,20 @@ def marketanalysis(request):
 		CAGR = graknData[0]['c']['value']
 		customers = ['customer 1', 'customer 2']
 		#competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
-		competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n; get $n;')
+		competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
+		#print(competitors)
+
 		if competitors:
-			competitors=competitors[0]['n']['value']	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
+			competitorsarray=[]
+			for comp in competitors:
+				competitorsarray.append({'name':comp['n']['value'],'id':comp['i']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
+		print(competitorsarray)	
 
 		directrisks = ['direct risk 1', 'direct risk 2']
 		relatedrisks = ['related risk1', 'related risk 2']
 
 
-		marketneeddata = {'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitors, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
+		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitorsarray, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
 
 		context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
 	return render(request, 'interface/analysis.html', context)
@@ -225,14 +231,21 @@ def addproject(request):
 			marketneedchoice = form.cleaned_data['marketneedchoice']
 			businessmodelchoice = form.cleaned_data['businessmodelchoice']
 
+
+
 			identifier = str(uuid.uuid4())
 			client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
 
 			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
-			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+			
 			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
 
+			for ch in marketneedchoice:
+				#print("choice:",ch)
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+ch+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+
+			for th in technologychoice:	
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+th+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
 
 
 			# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
