@@ -39,27 +39,34 @@ def allcompanies(request):
 
 
 def marketanalysis(request):
-	identifier = request.GET.get('id')
-	graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier $z, has marketsize $m, has CAGR $c; get $n, $s, $m, $c;') # dictionaries are nested structures
 	
-	# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
-	#companies=[]
-	#for entry in graknData:
-	#	company={'name':entry['y']['value'],'id':entry['z']['value']}
-	#	companies.append(company)
-	name = graknData[0]['n']['value']
-	summary = graknData[0]['s']['value']
-	size = graknData[0]['m']['value']
-	CAGR = graknData[0]['c']['value']
-	customers = ['customer 1', 'customer 2']
-	competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
-	directrisks = ['direct risk 1', 'direct risk 2']
-	relatedrisks = ['related risk1', 'related risk 2']
+	identifier = request.GET.get('id')
+	print(identifier)
+	if identifier:
+		graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier "'+identifier+'", has marketsize $m, has CAGR $c; get;') # dictionaries are nested structures
+		
+		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
+		#companies=[]
+		#for entry in graknData:
+		#	company={'name':entry['y']['value'],'id':entry['z']['value']}
+		#	companies.append(company)
+		name = graknData[0]['n']['value']
+		summary = graknData[0]['s']['value']
+		size = graknData[0]['m']['value']
+		CAGR = graknData[0]['c']['value']
+		customers = ['customer 1', 'customer 2']
+		#competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
+		competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n; get $n;')
+		if competitors:
+			competitors=competitors[0]['n']['value']	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
+
+		directrisks = ['direct risk 1', 'direct risk 2']
+		relatedrisks = ['related risk1', 'related risk 2']
 
 
-	marketneeddata = {'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitors, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
+		marketneeddata = {'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitors, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
 
-	context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
+		context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
 	return render(request, 'interface/analysis.html', context)
 	# database access here	
 
