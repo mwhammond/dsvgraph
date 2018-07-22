@@ -11,6 +11,8 @@ from .forms import addBusinessModelForm
 from .forms import addMarketNeedForm
 from .forms import addRiskForm
 
+from django.contrib import messages
+
 from django.shortcuts import redirect, render
 
 import grakn
@@ -172,8 +174,10 @@ def alltechnologies(request):
 def addcompany(request):
 	action = 'addcompany'
 	if request.method == 'POST':
+
 		form = addCompanyForm(data=request.POST) 
 		if form.is_valid():
+			messages.success(request, 'Saved')
 
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
@@ -186,8 +190,8 @@ def addcompany(request):
 				print("Warning - delete before rewrite (edit mode")
 
 
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 			#marketchoice = form.cleaned_data['marketneedchoice']
 			#protocompany = form.cleaned_data['protocompany'] #NOT CURRENTLY USED
 			#marketchoice = form.cleaned_data['marketchoice'] # removed as company can sit within several markets - via products and needs
@@ -214,7 +218,7 @@ def addproject(request):
 	if request.method == 'POST':
 		form = addProjectForm(data=request.POST) 
 		if form.is_valid():	
-
+			messages.success(request, 'Saved')
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 			print("identifier:",identifier)
 
@@ -223,8 +227,8 @@ def addproject(request):
 				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
 				print("Warning - delete before rewrite (edit mode")
 
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 
 			companychoice = form.cleaned_data['companychoice']
 			technologychoice = form.cleaned_data['technologychoice']
@@ -273,6 +277,7 @@ def addbusinessmodel(request):
 	if request.method == 'POST':
 		form = addBusinessModelForm(data=request.POST) 
 		if form.is_valid():
+			messages.success(request, 'Saved')
 
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
@@ -308,6 +313,7 @@ def addrisk(request):
 	if request.method == 'POST':
 		form = addRiskForm(data=request.POST) 
 		if form.is_valid():
+			messages.success(request, 'Saved')
 
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
@@ -318,8 +324,8 @@ def addrisk(request):
 				print("Warning - delete before rewrite (edit mode")
 
 
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 
 			marketchoice = form.cleaned_data['marketchoice']
 			businesschoice = form.cleaned_data['businesschoice']
@@ -401,6 +407,7 @@ def addmarketneed(request):
 	if request.method == 'POST':
 		form = addMarketNeedForm(data=request.POST) 
 		if form.is_valid():
+			messages.success(request, 'Saved')
 
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
@@ -411,8 +418,8 @@ def addmarketneed(request):
 
 
 
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 			marketchoice = form.cleaned_data['marketchoice']
 			marketsize = form.cleaned_data['marketsize']
 			marketcagr = form.cleaned_data['marketcagr']
@@ -442,6 +449,7 @@ def addtechnology(request):
 	if request.method == 'POST':
 		form = addTechnologyForm(data=request.POST) 
 		if form.is_valid():
+			messages.success(request, 'Saved')
 
 			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
@@ -452,8 +460,8 @@ def addtechnology(request):
 				print("Warning - delete before rewrite (edit mode")
 
 
-			name = form.cleaned_data['name']
-			summary = form.cleaned_data['summary']
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 			technologychoice = form.cleaned_data['technologychoice']
 
 			identifier = str(uuid.uuid4())

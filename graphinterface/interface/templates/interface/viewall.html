@@ -18,14 +18,12 @@
   <body>
 
     
-    <div class="container" style="width: 735px;"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
-
-    <div class="container">
+    <div class="container" style="width: 735px; height: 1500px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
             <li class="nav-item">
-              
+              <a class="nav-link active" href="/explore">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
               
@@ -36,7 +34,6 @@
           </ul>
         </nav>
         <h3 class="text-muted">DSV KG</h3>
-        <h4>{{title}}</h4>
       </div>
 
       <!-- Main part of the page -->
@@ -48,7 +45,7 @@
           <p contenteditable="true" spellcheckker="false">
             {% if graknData %}
               {% for entity in graknData %}
-                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>, <a href="/explore/{{analysislink}}?id={{entity.id}}">Analysis</a>]
+                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/{{analysislink}}?id={{entity.id}}">Analysis</a>]
 
                 </div>
               {% endfor %}
