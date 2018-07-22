@@ -59,20 +59,28 @@ def marketanalysis(request):
 		CAGR = graknData[0]['c']['value']
 		customers = ['customer 1', 'customer 2']
 		#competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
+		
 		competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
-		#print(competitors)
 
 		if competitors:
 			competitorsarray=[]
 			for comp in competitors:
 				competitorsarray.append({'name':comp['n']['value'],'id':comp['i']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
-		print(competitorsarray)	
 
-		directrisks = ['direct risk 1', 'direct risk 2']
+
+
+		directrisks=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (riskaffects:$x, $b); $b has name $n, has summary $s, has identifier $i, has rating $r; get $n, $i, $s, $r;')
+		if directrisks:
+			directriskssarray=[]
+			for drisk in directrisks:
+				directriskssarray.append({'name':drisk['n']['value'],'id':drisk['i']['value'],'summary':drisk['s']['value'],'rating':drisk['r']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!		
+				print(directriskssarray)
+
+
 		relatedrisks = ['related risk1', 'related risk 2']
 
 
-		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitorsarray, 'directrisks': directrisks, 'relatedrisks': relatedrisks}
+		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitorsarray, 'directrisks': directriskssarray, 'relatedrisks': relatedrisks}
 
 		context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
 	return render(request, 'interface/analysis.html', context)

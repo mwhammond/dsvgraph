@@ -70,7 +70,7 @@
             <br>
             {% if marketneeddata.competitors %}
               {% for entity in marketneeddata.competitors %}
-                <div> <b><a href="addproject?id={{entity.id}}">{{entity.name}}</a></b> | Short description | Tech stack | Status | </div>
+                <div> <a href="addproject?id={{entity.id}}">{{entity.name}}</a> | Short description | Tech stack | Status | </div>
               {% endfor %}
             {% else %}
               <p>No competition found, chucks away!</p>
@@ -85,7 +85,17 @@
             <div><h4>Key associated risks and drivers directly in market</h4></div>
             <p><a href="addrisk">Add risk / postitive impact</a></p>
             <br>
-            <p>{{marketneeddata.directrisks}}</p>
+            
+
+            {% if marketneeddata.directrisks %}
+              {% for m in marketneeddata.directrisks %}
+                <div> <a href="addrisk?id={{m.id}}">{{m.name}}</a> | {{m.summary}} | <b>Ranking: {{m.rating}}</b> | </div>
+              {% endfor %}
+            {% else %}
+              <p>No risks found, what a great day!</p>
+            {% endif %} 
+
+
              <div><hr class="style4"></div>
 
             <br>
