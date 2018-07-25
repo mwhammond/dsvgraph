@@ -22,5 +22,7 @@ path('deleteentity', views.deleteentity, name='Delete Entity'),
 path('addrisk', views.addrisk, name='Add Risk / Impact factor'),
 path('allrisk', views.allrisk, name='All Risk'),
 path('marketanalysis', views.marketanalysis, name='Market Need Analysis'),
+path('addcustomer', views.addcustomer, name='Add Customer'),
+path('addcompetitor', views.addcompetitor, name='Add Competitor'),
 ]
 

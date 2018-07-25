@@ -12,13 +12,15 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+
+
  
   </head>
 
   <body>
 
     
-    <div class="container" style="width: 735px; height: 1700px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
+    <div class="container" style="width: 735px; height: 1900px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
@@ -62,19 +64,20 @@
             <div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>
             <div>
             <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
-            <a href="/explore/addproject" class="btn btn-primary" role="button">Add Competitor</a>
-            <a href="/explore/addtechnology" class="btn btn-primary" role="button">Add Technology</a>
-            <a href="/explore/addproject" class="btn btn-primary" role="button">Add Solution</a>
+            <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete VBP</a>
             
+
             </div>
 
              <br>
             <br>
              <div><hr class="style4"></div>
-            <div><h4>Sub VBPs aggregated in to this analysis</h4></div>
+            <div><h4>Key customer needs, budget and urgency</h4></div>
             <br>
-            <p>Example sub VBP 1</p>
-            <p>Example sub VBP 2</p>
+            <p>Big co | £1bn | £1000 per item | Specific issue with ... | Urgent / Non-urgent</p>
+            <br>
+            <a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Customer</a>
+
 
              <div><hr class="style4"></div>
             <br>
@@ -82,9 +85,8 @@
 
 
 
-            <div><h4>Competition in market</h4></div>
-            <p><a href="addcompany">Add Company</a> | <a href="addproject">Add Project</a></p>
-            <br>
+            <div><h4>Competition vs. proposed Solutions</h4></div>
+      <br>
             {% if marketneeddata.competitors %}
               {% for entity in marketneeddata.competitors %}
                 <div> <a href="addproject?id={{entity.id}}">{{entity.name}}</a> | Short description | Tech stack | <span class="badge badge-danger">Threat</span> | </div>
@@ -93,17 +95,13 @@
               <p>No competition found, chucks away!</p>
             {% endif %} 
             </p>
+            <br>
+            <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Competitor</a>
+            <a href="/explore/addproject?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Define Solution</a>
 
             <br>
              <div><hr class="style4"></div>
-            <div><h4>Proposed solutions ranked</h4></div>
-            <br>
-            
-            <p>Example solution 2  <span class="badge badge-success">Build</span></p>
-            <p>Example solution 1  <span class="badge badge-danger">Outstanding risks</span></p>
 
-             <div><hr class="style4"></div>
-            <br>
 
 
             <br>
@@ -135,16 +133,6 @@
             <p>Big VC, Big grant co</p>
 
 
-            <br>
-            <br>
-             <div><hr class="style4"></div>
-            <div><h4>Customers</h4></div>
-            <br>
-            <p>{{marketneeddata.customers}}</p>
-
-             <div><hr class="style4"></div>
-            <br>
-
 <!--
             {% if graknData %}
               {% for entity in graknData %}
@@ -160,7 +148,6 @@
       <br>
       <br>
       <div><hr class="style4"></div>
-       <a href="/explore/deleteentity?id={{entity.id}}">Delete this entire entity and all relationships <b>(no further warning)</b></a>
 
 
       </div>

@@ -46,7 +46,7 @@
           <p contenteditable="true" spellcheckker="false">
             {% if graknData %}
               {% for entity in graknData %}
-                <div><span class="badge badge-success">Build</span><a href="/explore/{{analysislink}}?id={{entity.id}}">  {{entity.name}}</a> 
+                <div><a href="/explore/{{link}}?id={{entity.id}}">  {{entity.name}}</a> 
 
                 </div>
               {% endfor %}

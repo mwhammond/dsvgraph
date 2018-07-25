@@ -20,6 +20,18 @@ class addProjectForm(forms.Form):
 
 	pagetitle="Add project"
 
+	name = forms.CharField(label="Project title", max_length=100)	
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+
+	companychoice = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+	technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+
+
 	def __init__(self,*args,**kwargs):
 		
 		identifier=None
@@ -82,6 +94,11 @@ class addProjectForm(forms.Form):
 	# get static (rather than edit) data for form
 
 
+
+
+
+class addCompetitorForm(forms.Form):
+
 	name = forms.CharField(label="Project title", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
 
@@ -94,12 +111,154 @@ class addProjectForm(forms.Form):
 
 
 
+	def __init__(self,*args,**kwargs):
+		
+		identifier=None
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop('identifier')
+		print("edit mode: ", identifier)
+
+		super(addCompetitorForm, self).__init__(*args,**kwargs)
+		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
+
+		if identifier is not None:
+			print("id exists")
+
+			savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
+			companychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
+			businessmodelchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
+			technologychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usestech:$x, $b); $b has identifier $d; get $d;')	 
+			marketneedchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
+
+			if companychoiceSelection:
+				companychoiceSelection=companychoiceSelection[0]['d']['value']
+			if businessmodelchoiceSelection:
+				businessmodelchoiceSelection=businessmodelchoiceSelection[0]['d']['value']
+			if technologychoiceSelection:
+				technologychoiceSelection=technologychoiceSelection[0]['d']['value']
+			if marketneedchoiceSelection:
+				marketneedchoiceSelection=marketneedchoiceSelection[0]['d']['value']
+
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+
+			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
+			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+
+			#super(addProjectForm, self).__init__(*args,**kwargs)
+			#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			
+			self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), initial=companychoiceSelection, required=False)
+			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
+			self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
+			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
+
+
+
+			pagetitle="Edit project"
+
+		else:
+			print('add mode')
+
+
+
+
+
+class addCustomerForm(forms.Form):
+
+	# Note both customers and competitors are products in the databse, it's only thier relationship with the market need that changes
+
+	name = forms.CharField(label="Project title", max_length=100)	
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+
+	companychoice = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+	technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+
+
+	def __init__(self,*args,**kwargs):
+		
+		identifier=None
+		if 'identifier' in kwargs:
+			identifier = kwargs.pop('identifier')
+		print("edit mode: ", identifier)
+
+		super(addCustomerForm, self).__init__(*args,**kwargs)
+		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
+
+		if identifier is not None:
+			print("id exists")
+
+			savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
+			companychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
+			businessmodelchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
+			technologychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usestech:$x, $b); $b has identifier $d; get $d;')	 
+			marketneedchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
+
+			if companychoiceSelection:
+				companychoiceSelection=companychoiceSelection[0]['d']['value']
+			if businessmodelchoiceSelection:
+				businessmodelchoiceSelection=businessmodelchoiceSelection[0]['d']['value']
+			if technologychoiceSelection:
+				technologychoiceSelection=technologychoiceSelection[0]['d']['value']
+			if marketneedchoiceSelection:
+				marketneedchoiceSelection=marketneedchoiceSelection[0]['d']['value']
+
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+
+			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
+			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+
+			#super(addProjectForm, self).__init__(*args,**kwargs)
+			#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
+			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			
+			self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), initial=companychoiceSelection, required=False)
+			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
+			self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
+			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
+
+
+
+			pagetitle="Edit project"
+
+		else:
+			print('add mode')
+
+
+
+
 
 
 
 class addCompanyForm(forms.Form):
 
 	pagetitle="Add Company"	
+
+	statusoptions = [(4,'Fast'),(3,'Average'),(1,'Unknown'),(0,'Dead'),(5,'Exited')]		
+	name = forms.CharField(label="Company name", max_length=100)	
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	status = forms.ChoiceField(label='Company status', choices=statusoptions, required=False)
+
+	mode = forms.CharField(widget = forms.HiddenInput(),initial='identifer not determined')
 
 
 	def __init__(self,*args,**kwargs):
@@ -130,26 +289,26 @@ class addCompanyForm(forms.Form):
 			if savedstatusSelection:
 				self.fields['status'] = forms.ChoiceField(initial=savedstatusSelection)	
 
-			pagetitle="Edit Company"	
+			self.pagetitle="Edit Company"	
 		else:
 			print('add mode')
 			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
-			super(addCompanyForm, self).__init__(*args,**kwargs)	
-
-	statusoptions = [(4,'Fast'),(3,'Average'),(1,'Unknown'),(0,'Dead'),(5,'Exited')]		
-	name = forms.CharField(label="Company name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	status = forms.ChoiceField(label='Company status', choices=statusoptions, required=False)
-
-	mode = forms.CharField(widget = forms.HiddenInput(),initial='identifer not determined')
+			#super(addCompanyForm, self).__init__(*args,**kwargs)	
 
 
 
 
 class addMarketNeedForm(forms.Form):
 
-	pagetitle="Add Market Need"
+	pagetitle="Define Venture Backable problem"
 
+	name = forms.CharField(label="Market name", max_length=100)
+	summary = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
+	marketchoice = forms.ChoiceField(label='Sits within wider market need', choices=getEntries('marketneed'), required=False)
+	marketsize = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label= 'Specific market size in millions, number only')
+	marketcagr = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label='CARG percent, number only dont add %')
+
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 	def __init__(self,*args,**kwargs):
 
@@ -192,13 +351,7 @@ class addMarketNeedForm(forms.Form):
 			print('add mode')	
 
 
-	name = forms.CharField(label="Market name", max_length=100)
-	summary = forms.CharField(label="*Specific* pain, cost and solution requirements", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}))
-	marketchoice = forms.ChoiceField(label='Sits within wider market need', choices=getEntries('marketneed'), required=False)
-	marketsize = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label= 'Specific market size in millions, number only')
-	marketcagr = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label='CARG percent, number only dont add %')
 
-	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 
@@ -212,6 +365,20 @@ class addRiskForm(forms.Form):
 
 		identifier=None
 		ratings = [(5.0,5.0),(4.0,4.0),(3.0,3.0),(2.0,2.0),(1.0,1.0),(-1.0,-1.0),(-2.0,-2.0),(-3.0,-3.0),(-4.0,-4.0),(-5.0,-5.0)]	
+
+		savedNameSelection = savedNameSelection[0]['y']['value']
+		savedSummarySelection = savedSummarySelection[0]['y']['value']
+		self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+		self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+		self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+		self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market need:', choices=getEntries('marketneed'), required=False,initial=marketchoiceSelection)
+		self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False, initial=businessmodelchoiceSelection)
+		self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False, initial=technologychoiceSelection)
+		self.fields['score'] = forms.ChoiceField(label='rating, higher good impact, lower worse risk', choices=ratings, required=True,initial=savedRiskRating)
+
+
+
+		pagetitle="Edit risk"
 
 		if 'identifier' in kwargs:	
 			identifier = kwargs.pop("identifier")
@@ -250,19 +417,7 @@ class addRiskForm(forms.Form):
 				print(savedRiskRating)	
 
 
-			savedNameSelection = savedNameSelection[0]['y']['value']
-			savedSummarySelection = savedSummarySelection[0]['y']['value']
-			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
-			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			self.fields['marketchoice'] = forms.ChoiceField(label='Effects a market need:', choices=getEntries('marketneed'), required=False,initial=marketchoiceSelection)
-			self.fields['businesschoice'] = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False, initial=businessmodelchoiceSelection)
-			self.fields['technologychoice'] = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False, initial=technologychoiceSelection)
-			self.fields['score'] = forms.ChoiceField(label='rating, higher good impact, lower worse risk', choices=ratings, required=True,initial=savedRiskRating)
 
-
-
-			pagetitle="Edit risk"
 		else:
 			print('add mode')
 
@@ -282,6 +437,13 @@ class addRiskForm(forms.Form):
 class addBusinessModelForm(forms.Form):
 
 	pagetitle="Add Business Model"
+
+
+	name = forms.CharField(label="Business Model name", max_length=100)	
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	top = forms.ChoiceField(label='Sits within model group', choices=getEntries('businessmodel'), required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
 
 	def __init__(self,*args,**kwargs):
 
@@ -315,11 +477,6 @@ class addBusinessModelForm(forms.Form):
 			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
 			
 
-
-	name = forms.CharField(label="Business Model name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	top = forms.ChoiceField(label='Sits within model group', choices=getEntries('businessmodel'), required=False)
-	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 #class addMarketForm(forms.Form):

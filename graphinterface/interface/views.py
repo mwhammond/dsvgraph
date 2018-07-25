@@ -10,6 +10,8 @@ from .forms import addBusinessModelForm
 #from .forms import addMarketForm
 from .forms import addMarketNeedForm
 from .forms import addRiskForm
+from .forms import addCustomerForm
+from .forms import addCompetitorForm
 
 from django.contrib import messages
 
@@ -81,7 +83,7 @@ def marketanalysis(request):
 
 		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customers, 'competitors': competitorsarray, 'directrisks': directriskssarray, 'relatedrisks': relatedrisks}
 
-		context = {'title': 'Market Need Analysis','link': 'addmarketneed', 'marketneeddata': marketneeddata}
+		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata}
 	return render(request, 'interface/analysis.html', context)
 	# database access here	
 
@@ -154,7 +156,7 @@ def allmarketneeds(request):
 		singleentity={'name':x['y']['value'],'id':x['z']['value']}
 		allentities.append(singleentity)
 
-	context = {'graknData': allentities,'title': 'All Market Needs','link': 'addmarketneed','analysislink': 'marketanalysis'}
+	context = {'graknData': allentities,'title': 'All Market Needs','link': 'marketanalysis'}
 	return render(request, 'interface/viewall.html', context)
 	# database access here	
 
@@ -180,6 +182,7 @@ def alltechnologies(request):
 
 def addcompany(request):
 	action = 'addcompany'
+	pagetitle ="Add company"
 	if request.method == 'POST':
 
 		form = addCompanyForm(data=request.POST) 
@@ -225,8 +228,128 @@ def addcompany(request):
 	
 
 
+def addcompetitor(request):
+
+	action = 'addcompetitor'
+	pagetitle='Add Competitor'
+
+
+	if request.method == 'POST':
+		form = addCompetitorForm(data=request.POST) 
+		if form.is_valid():	
+			messages.success(request, 'Saved')
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+			print("identifier:",identifier)
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+
+			companychoice = form.cleaned_data['companychoice']
+			technologychoice = form.cleaned_data['technologychoice']
+			marketneedchoice = form.cleaned_data['marketneedchoice']
+			businessmodelchoice = form.cleaned_data['businessmodelchoice']
+
+			######
+			######
+			######
+			# Add handling for new choices
+
+			identifier = str(uuid.uuid4())
+			client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
+			
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
+
+			for ch in marketneedchoice:
+				#print("choice:",ch)
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+ch+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+
+			for th in technologychoice:	
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+th+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
+
+
+			# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
+	else:
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addCompetitorForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
+		else:
+			form = 	addCompetitorForm() # i.e. we've just asked for a fresh form
+
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle})	
+		
+
+
+def addcustomer(request):
+
+	action = 'addcustomer'
+	pagetitle='Add Customer'
+
+
+
+	if request.method == 'POST':
+		form = addCustomerForm(data=request.POST) 
+		if form.is_valid():	
+			messages.success(request, 'Saved')
+			identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+			print("identifier:",identifier)
+
+			if identifier: # i.e. we're in edit mode delete previous entity first
+				client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
+				client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
+				print("Warning - delete before rewrite (edit mode")
+
+			name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+			summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+
+			companychoice = form.cleaned_data['companychoice']
+			technologychoice = form.cleaned_data['technologychoice']
+			marketneedchoice = form.cleaned_data['marketneedchoice']
+			businessmodelchoice = form.cleaned_data['businessmodelchoice']
+
+			######
+			######
+			######
+			# Add handling for new choices
+
+			identifier = str(uuid.uuid4())
+			client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
+			
+			client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
+
+			for ch in marketneedchoice:
+				#print("choice:",ch)
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+ch+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+
+			for th in technologychoice:	
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+th+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
+
+
+		# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
+	else:
+		identifier = request.GET.get('id')
+		if identifier:
+			form = 	addCustomerForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
+		else:
+			form = 	addCustomerForm() # i.e. we've just asked for a fresh form
+
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle})	
+
+
+
+
 def addproject(request):
 	action = 'addproject'
+	pagetitle='Add Competitor'
+
 	if request.method == 'POST':
 		form = addProjectForm(data=request.POST) 
 		if form.is_valid():	
@@ -279,7 +402,7 @@ def addproject(request):
 	#^^ get the compant that owns this prouduct
 	# NOTE WILL NEED TO TURN INFERENCE ON
 
-	return render(request, 'interface/addentity.html', {'form': form, 'action': action})	
+	return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle})	
 
 
 
@@ -415,7 +538,7 @@ def addrisk(request):
 
 def addmarketneed(request):
 	action = 'addmarketneed'
-	pagetitle = "Add Market Need"
+	pagetitle = "Define venture backable problem"
 	if request.method == 'POST':
 		form = addMarketNeedForm(data=request.POST) 
 		if form.is_valid():
