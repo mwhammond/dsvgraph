@@ -58,9 +58,24 @@
    
 
             <div><p>{{marketneeddata.summary}}</p></div>
+            <br>
+            <!--
+            <div><h4>Current graph analysis</h4></div>
+            <div><p>£{{marketneeddata.size}} million is a <b>significant market size</b> +5</p></div>
+            <div><p>A growth rate of <b>{{marketneeddata.CAGR}}% is good,</b>+4 <p></div>
+            <div><p>There are <b>3</b> potential customers, ideally aim for at least 10, -2</p></div>
+            <div><p>There are <b>3</b> known direct competitors close to a solution, -2</p></div>
+            <div><p>Budget for solutions seems <b>low</b>, -5</p></div>
+            <div><p>In a <b>risk adverse market</b>, -3</p></div> 
+            <br>
+            <div><h3>VBP score: 6 which is ok but not compelling</h3>
+            <br> 
+          -->
 
-            <div><p><b>Specific Market size:</b> £{{marketneeddata.size}} million</p></div>
-            <div><p><b>CAGR:</b> {{marketneeddata.CAGR}}%</p></div>
+
+
+
+
             <div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>
             <div>
             <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
@@ -74,7 +89,16 @@
              <div><hr class="style4"></div>
             <div><h4>Key customer needs, budget and urgency</h4></div>
             <br>
-            <p>Big co | £1bn | £1000 per item | Specific issue with ... | Urgent / Non-urgent</p>
+
+
+            {% if marketneeddata.customers %}
+              {% for entity in marketneeddata.customers %}
+                <div> <a href="addcustomer?id={{entity.id}}">{{entity.name}}</a> | Short description | </div>
+              {% endfor %}
+            {% else %}
+              <p>No customers found, that's not good!</p>
+            {% endif %} 
+
             <br>
             <a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Customer</a>
 

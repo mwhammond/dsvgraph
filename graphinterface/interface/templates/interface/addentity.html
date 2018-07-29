@@ -20,7 +20,7 @@
   <body>
 
 
-    <div class="container" style="width: 735px; height: 1000px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
+    <div class="container" style="width: 735px; height: 1500px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
@@ -71,9 +71,11 @@
 
 {% endif %}
 
+<!--
 <div><a href="addcompany" target="_blank">Add company</a> | <a href="addtechnology" target="_blank">Add Technologoy</a> | <a href="addbusinessmodel" target="_blank">Add business model</a> | <a href="addmarketneed" target="_blank">Add market need</a></div>
 <div><i>Links open in new window, save and refresh to appear here</i></div>
 <br>
+-->
 
 {% if messages %}
     {% for message in messages %}
@@ -110,6 +112,9 @@
 
 <button type="submit" class="btn btn-primary">Save</button>
 </form>
+<br>
+<br>
+<a href="/explore/deleteentity?id={{request.GET.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete Forever</a>
 
         
       </div>  

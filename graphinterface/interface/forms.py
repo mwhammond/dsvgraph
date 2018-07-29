@@ -175,16 +175,30 @@ class addCustomerForm(forms.Form):
 
 	# Note both customers and competitors are products in the databse, it's only thier relationship with the market need that changes
 
-	name = forms.CharField(label="Project title", max_length=100)	
+#	if 'market' in kwargs:
+#			marketid = kwargs.pop('marketid')
+
+	riskratings = [(5.0,'Extreme'),(4.0,'High'),(3.0,'Medium'),(2.0,'Low')]	
+
+	name = forms.CharField(label="Company name", max_length=100)	
 	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
 
-	companychoice = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
-	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
-	technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+	companychoice = forms.ChoiceField(label='Is this customer part of a larger company?', choices=getEntries('company'), required=False)
+	businessmodelchoice = forms.ChoiceField(label='Business Model of how they tend to purchase (if known)', choices=getEntries('businessmodel'), required=False)
 	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
-
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
+
+	financialimpact = forms.CharField(widget=forms.TextInput(attrs={'type':'number'}), label="Quantified financial impact (numer in thousands)", max_length=100)	
+	userbudget = forms.CharField(widget=forms.TextInput(attrs={'type':'number'}), label="Aprox budget for the company to solve (number in thousands)", max_length=100)	
+	riskadversion = forms.ChoiceField(label='Risk adversion of customer', choices=riskratings, required=False)
+
+
+
+
+			# Quantified financial impact per company (number)
+			# Direct end user budget to solve (number)
+			# Risk adversion (very high-high-med-low)
 
 
 	def __init__(self,*args,**kwargs):
@@ -194,31 +208,45 @@ class addCustomerForm(forms.Form):
 			identifier = kwargs.pop('identifier')
 		print("edit mode: ", identifier)
 
+		riskratings = [(5.0,'Extreme'),(4.0,'High'),(3.0,'Medium'),(2.0,'Low')]	
+
 		super(addCustomerForm, self).__init__(*args,**kwargs)
-		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
-		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
-		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['companychoice'] = forms.ChoiceField(label='Is this customer part of a larger company?', choices=getEntries('company'), required=False)
+		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model of how they tend to purchase (if known)', choices=getEntries('businessmodel'), required=False)
 		self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+
+		self.fields['financialimpact'] = forms.CharField(label="Quantified financial impact (numer in thousands)", max_length=100)	
+		self.fields['userbudget'] = forms.CharField(label="Aprox budget for the company to solve (number in thousands)", max_length=100)	
+		self.fields['riskadversion'] = forms.ChoiceField(label='Risk adversion of customer', choices=riskratings, required=False)
+
 
 
 		if identifier is not None:
 			print("id exists")
 
-			savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
-			savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
-			companychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
-			businessmodelchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
-			technologychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usestech:$x, $b); $b has identifier $d; get $d;')	 
-			marketneedchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
+			savedNameSelection =client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection =client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
+			companychoiceSelection =client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
+			businessmodelchoiceSelection =client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
+			marketneedchoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (customer:$x, $b); $b has identifier $d; get $d;')	
+
+			attributes = client.execute('match $x isa product, has finimpact $f, has userbudget $u, has riskscore $r, has identifier "' +identifier+'"; get;')
+
+
 
 			if companychoiceSelection:
 				companychoiceSelection=companychoiceSelection[0]['d']['value']
 			if businessmodelchoiceSelection:
 				businessmodelchoiceSelection=businessmodelchoiceSelection[0]['d']['value']
-			if technologychoiceSelection:
-				technologychoiceSelection=technologychoiceSelection[0]['d']['value']
 			if marketneedchoiceSelection:
 				marketneedchoiceSelection=marketneedchoiceSelection[0]['d']['value']
+
+			if attributes:
+				print(attributes)
+				financialimpactSelection = attributes[0]['f']['value']
+				userbudgetSelection = attributes[0]['u']['value']
+				riskadversionSelection = attributes[0]['r']['value']
+	
 
 			savedNameSelection = savedNameSelection[0]['y']['value']
 			savedSummarySelection = savedSummarySelection[0]['y']['value']
@@ -228,17 +256,19 @@ class addCustomerForm(forms.Form):
 
 			#super(addProjectForm, self).__init__(*args,**kwargs)
 			#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
-			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
+			self.fields['name'] = forms.CharField(label="Company name", max_length=100, initial=savedNameSelection)
 			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
 			
-			self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), initial=companychoiceSelection, required=False)
-			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
-			self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
+			self.fields['companychoice'] = forms.ChoiceField(label='Is this customer part of a larger company?', choices=getEntries('company'), initial=companychoiceSelection, required=False)
+			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model of how they tend to purchase (if known)', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
 			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
 
+			self.fields['financialimpact'] = forms.CharField(label="Quantified financial impact (numer in thousands)", initial=financialimpactSelection, max_length=100)	
+			self.fields['userbudget'] = forms.CharField(label="Aprox budget for the company to solve (number in thousands)", initial=userbudgetSelection, max_length=100)	
+			self.fields['riskadversion'] = forms.ChoiceField(label='Risk adversion of customer', choices=riskratings, initial=riskadversionSelection, required=False)
 
 
-			pagetitle="Edit project"
+
 
 		else:
 			print('add mode')

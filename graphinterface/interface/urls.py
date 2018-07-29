@@ -6,7 +6,7 @@ from . import views
 urlpatterns = [
 #/ main panel
 path('', views.index, name='index'),
-path('addcompany', views.addcompany, name='Add Company'),
+#path('addcompany', views.addcompany, name='Add Company'),
 path('addproject', views.addproject, name='Add Project'),
 path('allcompanies', views.allcompanies, name='All Companies'),
 path('allprojects', views.allprojects, name='All Projects'),
