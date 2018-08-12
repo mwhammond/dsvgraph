@@ -34,9 +34,15 @@ class addProjectForm(forms.Form):
 
 	def __init__(self,*args,**kwargs):
 		
-		identifier=None
+		
 		if 'identifier' in kwargs:
 			identifier = kwargs.pop('identifier')
+		else: 
+			identifier=None
+
+		if 'marketid' in kwargs:
+			marketid = kwargs.pop('marketid')
+
 		print("edit mode: ", identifier)
 
 		super(addProjectForm, self).__init__(*args,**kwargs)
@@ -87,6 +93,8 @@ class addProjectForm(forms.Form):
 
 		else:
 			print('add mode')
+			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketid, required=False)
+
 			#mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial='new')
 			#super(addProjectForm, self).__init__(*args,**kwargs)
 
@@ -99,48 +107,63 @@ class addProjectForm(forms.Form):
 
 class addCompetitorForm(forms.Form):
 
-	name = forms.CharField(label="Project title", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), label='Project name')
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}), label='Description')
+	companychoice = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control','placeholder':'Project name'}), choices=getEntries('company'), label='Part of company')
 
-	companychoice = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
-	businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
-	technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
-	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+			
+
+
+	#businessmodelchoice = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+	#technologychoice = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+	marketneedchoice = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Market Need Set', choices=getEntries('marketneed'), required=False)
 
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
-
+	#mystryvalue='surprise1'
 
 	def __init__(self,*args,**kwargs):
-		
-		identifier=None
+	
+
 		if 'identifier' in kwargs:
 			identifier = kwargs.pop('identifier')
-		print("edit mode: ", identifier)
+		else:
+			identifier=None	
+
+		if 'marketid' in kwargs:	
+			marketid = kwargs.pop("marketid")
+		else:
+			marketid=0	
+
+		self.mystryvalue='surprise2'			
 
 		super(addCompetitorForm, self).__init__(*args,**kwargs)
-		self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
-		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
-		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
-		self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
+		#self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), required=False)
+	#	self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), required=False)
+	#	self.fields['technologychoice'] = forms.MultipleChoiceField(label='Add Technology', choices=getEntries('technology'), required=False)
+		self.fields['marketneedchoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Market Need Set', choices=getEntries('marketneed'), required=False)
 
+		
 
 		if identifier is not None:
 			print("id exists")
 
-			savedNameSelection = graknData=client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
-			savedSummarySelection = graknData=client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
-			companychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
-			businessmodelchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
-			technologychoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (usestech:$x, $b); $b has identifier $d; get $d;')	 
-			marketneedchoiceSelection = graknData=client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
+			savedNameSelection = client.execute('match $x isa product, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = client.execute('match $x isa product, has summary $y, has identifier "' +identifier+'"; get;')	
+			companychoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (companyproduct:$x, $b); $b has identifier $d; get $d;')	
+	#		businessmodelchoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (usesmodel:$x, $b); $b has identifier $d; get $d;')	
+	#		technologychoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (usestech:$x, $b); $b has identifier $d; get $d;')	 
+			marketneedchoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
 
-			if companychoiceSelection:
-				companychoiceSelection=companychoiceSelection[0]['d']['value']
-			if businessmodelchoiceSelection:
-				businessmodelchoiceSelection=businessmodelchoiceSelection[0]['d']['value']
-			if technologychoiceSelection:
-				technologychoiceSelection=technologychoiceSelection[0]['d']['value']
+
+			# QUESTION IS WHAT DO I ADD THIS TOO???	
+
+	#		if companychoiceSelection:
+	#			companychoiceSelection=companychoiceSelection[0]['d']['value']
+	#		if businessmodelchoiceSelection:
+	#			businessmodelchoiceSelection=businessmodelchoiceSelection[0]['d']['value']
+	#		if technologychoiceSelection:
+	#			technologychoiceSelection=technologychoiceSelection[0]['d']['value']
 			if marketneedchoiceSelection:
 				marketneedchoiceSelection=marketneedchoiceSelection[0]['d']['value']
 
@@ -150,15 +173,15 @@ class addCompetitorForm(forms.Form):
 			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 
-			#super(addProjectForm, self).__init__(*args,**kwargs)
-			#self.fields['name'] = forms.ChoiceField(label="Name", choices=[(x.plug_ip, x.MY_DESCRIPTIVE_FIELD) for x in Sniffer.objects.filter(client = myClient)])
-			self.fields['name'] = forms.CharField(label="Project title", max_length=100, initial=savedNameSelection)
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
-			
-			self.fields['companychoice'] = forms.ChoiceField(label='Company owner', choices=getEntries('company'), initial=companychoiceSelection, required=False)
-			self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
-			self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
-			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
+			self.fields['name'] = name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), initial=savedNameSelection, label='Project name')
+			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}),initial=savedSummarySelection, label='Description')
+			self.fields['companychoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Part of company', choices=getEntries('company'),initial=companychoiceSelection)
+
+
+
+	#		self.fields['businessmodelchoice'] = forms.ChoiceField(label='Business Model', choices=getEntries('businessmodel'), initial=businessmodelchoiceSelection, required=False)
+	#		self.fields['technologychoice'] = forms.MultipleChoiceField(label='Technology stack', choices=getEntries('technology'), initial=technologychoiceSelection, required=False)
+			self.fields['marketneedchoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Market Need', choices=getEntries('marketneed'), initial=marketneedchoiceSelection, required=False)
 
 
 
@@ -166,6 +189,8 @@ class addCompetitorForm(forms.Form):
 
 		else:
 			print('add mode')
+			self.fields['marketneedchoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Addressing Need', choices=getEntries('marketneed'), initial=marketid, required=False)
+
 
 
 
@@ -203,10 +228,16 @@ class addCustomerForm(forms.Form):
 
 	def __init__(self,*args,**kwargs):
 		
-		identifier=None
+		
 		if 'identifier' in kwargs:
 			identifier = kwargs.pop('identifier')
-		print("edit mode: ", identifier)
+		else:
+			identifier=None
+
+		if 'marketid' in kwargs:	
+			marketid = kwargs.pop("marketid")
+		else:
+			marketid=0	
 
 		riskratings = [(5.0,'Extreme'),(4.0,'High'),(3.0,'Medium'),(2.0,'Low')]	
 
@@ -272,6 +303,8 @@ class addCustomerForm(forms.Form):
 
 		else:
 			print('add mode')
+			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketid, required=False)
+
 
 
 
@@ -297,6 +330,10 @@ class addCompanyForm(forms.Form):
 		identifier=None
 		if 'identifier' in kwargs:
 			identifier = kwargs.pop("identifier")
+		if 'marketid' in kwargs:	
+			marketid = kwargs.pop("marketid")
+		else:
+			marketid=0		
 
 		super(addCompanyForm, self).__init__(*args,**kwargs)
 
@@ -328,6 +365,8 @@ class addCompanyForm(forms.Form):
 
 
 
+
+
 class addMarketNeedForm(forms.Form):
 
 	pagetitle="Define Venture Backable problem"
@@ -337,6 +376,8 @@ class addMarketNeedForm(forms.Form):
 	marketchoice = forms.ChoiceField(label='Sits within wider market need', choices=getEntries('marketneed'), required=False)
 	marketsize = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label= 'Specific market size in millions, number only')
 	marketcagr = forms.CharField( widget=forms.TextInput(attrs={'type':'number'}),initial=0, label='CARG percent, number only dont add %')
+
+
 
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
@@ -379,6 +420,189 @@ class addMarketNeedForm(forms.Form):
 			self.pagetitle="Edit Market Need"
 		else:
 			print('add mode')	
+
+
+
+
+
+
+class addRequirementForm(forms.Form):
+
+
+
+	categories=[('Technical','Technical'), ('Team', 'Team'), ('Seed financing', 'Seed financing'), ('Growth financing','Growth financing')]
+
+	pagetitle="Define Venture Backable problem"
+
+	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), label='Project name')
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}), label='Description')
+	category = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Category', choices=categories, required=False)
+
+	marketchoice = forms.ChoiceField(label='Sits within wider market need', choices=getEntries('marketneed'), required=False)
+	importance = forms.CharField( widget=forms.NumberInput(attrs={'type':'number', 'class':'form-control'}),initial=0, label= 'Importance: 1-5, 5 most important')
+	confidence = forms.CharField( widget=forms.NumberInput(attrs={'type':'number','class':'form-control'}),initial=0, label='Confidence: 0-100%')
+	marketchoice = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Associated with market need:', choices=getEntries('marketneed'), required=False)
+
+
+
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+	def __init__(self,*args,**kwargs):
+
+		
+		pagetitle = "Add Requirement"
+		if 'identifier' in kwargs:	
+			identifier = kwargs.pop("identifier")
+		else:
+			identifier=None
+			
+		if 'marketid' in kwargs:	
+			marketid = kwargs.pop("marketid")
+		else:
+			marketid=0	
+
+		super(addRequirementForm, self).__init__(*args,**kwargs)
+		##self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+
+		if identifier is not None:			
+			print("edit mode")
+			savedNameSelection = client.execute('match $x isa requirement, has name $y, has identifier "' +identifier+'"; get;')
+			savedSummarySelection = client.execute('match $x isa requirement, has summary $y, has identifier "' +identifier+'"; get;')
+			importanceSelection = client.execute('match $x isa requirement, has importance $y, has identifier "' +identifier+'"; get;')
+			confidenceSelection	= client.execute('match $x isa requirement, has confidence $y, has identifier "' +identifier+'"; get;')
+			marketchoiceSelection = client.execute('match $x isa requirement, has identifier "' +identifier+'"; (requiremententity:$x, $b); $b has identifier $d; get $d;')	
+			categorySelection = client.execute('match $x isa requirement, has category $y, has identifier "' +identifier+'"; get;')
+
+
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+
+			if importanceSelection:
+				importanceSelection = importanceSelection[0]['y']['value']
+			if confidenceSelection:
+				confidenceSelection = confidenceSelection[0]['y']['value']
+			if marketchoiceSelection:
+				marketchoiceSelection = marketchoiceSelection[0]['d']['value']
+			if categorySelection:
+				categorySelection = categorySelection[0]['y']['value']	
+
+			categories=[('Technical','Technical'), ('Team', 'Team'), ('Seed financing', 'Seed financing'), ('Growth financing','Growth financing')]
+	
+
+			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
+			
+			self.fields['name'] = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), initial=savedNameSelection)
+			self.fields['summary'] = forms.CharField(label="Summary", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}),initial=savedSummarySelection)
+			self.fields['category'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Category:',choices=categories, required=False,initial=categorySelection)
+			self.fields['confidence'] = forms.CharField( widget=forms.NumberInput(attrs={'type':'number', 'class':'form-control'}),initial=confidenceSelection, label= 'Confidence: 0-100%')
+			self.fields['importance'] = forms.CharField( widget=forms.NumberInput(attrs={'type':'number', 'class':'form-control'}),initial=importanceSelection, label='Importance 1-5')
+			self.fields['marketchoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Accociated with market need:',choices=getEntries('marketneed'), required=False,initial=marketchoiceSelection)
+
+
+			self.pagetitle="Edit Requirement"
+		else:
+			print('add mode')
+			print(marketid)
+			self.fields['marketchoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Accociated with market need:',choices=getEntries('marketneed'), required=False,initial=marketid)	
+
+
+
+
+class addSolutionForm(forms.Form):
+
+
+	categories=[('Technical','Technical'), ('Team', 'Team'), ('Seed financing', 'Seed financing'), ('Growth financing','Growth financing')]
+	status=[(0,'Not addressed or not viable'), (1,'Draft viability'), (2,'Multi DD viability'), (3,'Early evidence'), (4,'Proven'), (5,'Out performed')]
+
+	pagetitle="Add solution"
+	requirement = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Addresses Requirement', choices=getEntries('requirement'), required=False)
+
+	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Title'}), label='Title')
+	category = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Category', choices=categories, required=False)
+	state = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Status', choices=status, required=False)
+	confidence = forms.CharField( widget=forms.NumberInput(attrs={'type':'number','class':'form-control'}), initial=0, label='Confidence: 0-100%')
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}), label='Description')
+
+
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+	reqid = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+	productid = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+	def __init__(self,*args,**kwargs):
+
+		
+		pagetitle = "Add Solution"
+		if 'solutionid' in kwargs:	
+			solutionid = kwargs.pop("solutionid")
+		else:
+			solutionid = ""				
+		if 'reqid' in kwargs:	
+			reqid = kwargs.pop("reqid")
+		else:
+			reqid = ""
+		if 'productid' in kwargs:
+			productid = kwargs.pop("productid")
+		else:
+			productid = ""	
+
+		super(addSolutionForm, self).__init__(*args,**kwargs)
+		##self.fields['marketchoice'] = forms.ChoiceField(label='Sits within market', choices=getEntries('market'), required=False)
+
+		if solutionid is not "":	# NOTE SET AS EMPTY STRING IN COMPETITOR PAGE		
+			print("edit mode")
+			savedNameSelection = client.execute('match $x isa solutioncomponent, has name $y, has identifier "' +solutionid+'"; get;')
+			savedSummarySelection = client.execute('match $x isa solutioncomponent, has summary $y, has identifier "' +solutionid+'"; get;')
+			stateSelection = client.execute('match $x isa solutioncomponent, has status $y, has identifier "' +solutionid+'"; get;')
+			categorySelection = client.execute('match $x isa solutioncomponent, has category $y, has identifier "' +solutionid+'"; get;')
+			confidenceSelection	= client.execute('match $x isa solutioncomponent, has confidence $y, has identifier "' +solutionid+'"; get;')
+			requirementSelection = client.execute('match $x isa solutioncomponent, has identifier "' +solutionid+'"; (solution:$x, $b); $b has identifier $d; get $d;')	
+		
+
+			savedNameSelection = savedNameSelection[0]['y']['value']
+			savedSummarySelection = savedSummarySelection[0]['y']['value']
+
+			if confidenceSelection:
+				confidenceSelection = confidenceSelection[0]['y']['value']
+
+			if stateSelection:
+				stateSelection = stateSelection[0]['y']['value']
+
+			if categorySelection:
+				categorySelection = categorySelection[0]['y']['value']
+
+			if requirementSelection:
+				requirementSelection = requirementSelection[0]['d']['value']	
+
+						
+			categories=[('Technical','Technical'), ('Team', 'Team'), ('Seed financing', 'Seed financing'), ('Growth financing','Growth financing')]
+			status=[(0,'Not addressed or not viable'), (1,'Draft plan'), (2,'Multi DD plan'), (3,'Early evidence'), (4,'Proven'), (5,'Out performed')]
+	
+
+			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=solutionid)
+			self.fields['reqid'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=reqid)
+			self.fields['productid'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=productid)
+
+
+
+			self.fields['requirement'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Addresses requirement:',choices=getEntries('requirement'), required=False,initial=requirementSelection)
+	
+			self.fields['name'] = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Title'}), initial=savedNameSelection, label='Title')
+			self.fields['summary'] = forms.CharField(label="Summary", widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}),initial=savedSummarySelection)
+			self.fields['confidence'] = forms.CharField(widget=forms.NumberInput(attrs={'type':'number', 'class':'form-control'}),initial=confidenceSelection, label= 'Confidence: 0-100%')
+			self.fields['state'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='State:',choices=status, required=False,initial=stateSelection)
+			self.fields['category'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Category:',choices=categories, required=False,initial=categorySelection)
+
+
+			self.pagetitle="Edit Solution"
+		else:
+			print('add mode')
+			#print(requirementid)
+			self.fields['requirement'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='Accociated with requirement:',choices=getEntries('requirement'), required=False,initial=reqid)	
+			self.fields['reqid'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=reqid)
+			self.fields['productid'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=productid)
+
+
+
 
 
 
@@ -460,6 +684,9 @@ class addRiskForm(forms.Form):
 	businesschoice = forms.ChoiceField(label='Effects a businessmodel:', choices=getEntries('businessmodel'), required=False)
 	technologychoice = forms.ChoiceField(label='Effects a technology:', choices=getEntries('technology'), required=False)
 	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+
+
 
 
 

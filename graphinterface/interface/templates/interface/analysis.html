@@ -76,7 +76,7 @@
 
 
 
-            <div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>
+            <!--<div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>-->
             <div>
             <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
             <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete VBP</a>
@@ -87,7 +87,47 @@
              <br>
             <br>
              <div><hr class="style4"></div>
-            <div><h4>Key customer needs, budget and urgency</h4></div>
+            <div><h4>Key requierments to meet</h4></div>
+            <br>
+
+
+            {% if marketneeddata.requirements %}
+              {% for entity in marketneeddata.requirements %}
+                <div> <a href="addrequirement?id={{entity.id}}" target="blank">{{entity.name}}</a> | Short description | </div>
+              {% endfor %}
+            {% else %}
+              <p>No requirements set</a></p>
+            {% endif %} 
+            <br>
+            <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a>
+
+            <br>
+            <div><hr class="style4"></div>
+            <br>
+
+
+
+
+            <div><h4>Ranked proposals and competition</h4></div>
+      <br>
+            {% if marketneeddata.competitors %}
+              {% for entity in marketneeddata.competitors %}
+                <div> <a href="addcompetitor?id={{entity.id}}">{{entity.name}}</a> Score: 70% <span class="badge badge-danger">Threat</span> | </div>
+              {% endfor %}
+            {% else %}
+              <p>No competition found, chucks away!</p>
+            {% endif %} 
+            </p>
+            <br>
+            <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Competitor</a>
+           <!-- <a href="/explore/addproject?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add new solution</a> -->
+
+            <br>
+             <div><hr class="style4"></div>
+             <br> 
+
+
+            <div><h4>Customers</h4></div>
             <br>
 
 
@@ -100,62 +140,11 @@
             {% endif %} 
 
             <br>
-            <a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Customer</a>
+            <a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Customer</a>
 
 
              <div><hr class="style4"></div>
             <br>
-
-
-
-
-            <div><h4>Competition vs. proposed Solutions</h4></div>
-      <br>
-            {% if marketneeddata.competitors %}
-              {% for entity in marketneeddata.competitors %}
-                <div> <a href="addproject?id={{entity.id}}">{{entity.name}}</a> | Short description | Tech stack | <span class="badge badge-danger">Threat</span> | </div>
-              {% endfor %}
-            {% else %}
-              <p>No competition found, chucks away!</p>
-            {% endif %} 
-            </p>
-            <br>
-            <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Competitor</a>
-            <a href="/explore/addproject?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Define Solution</a>
-
-            <br>
-             <div><hr class="style4"></div>
-
-
-
-            <br>
-            <div><h4>Key associated risks and drivers directly in market</h4></div>
-            <p><a href="addrisk">Add risk / postitive impact</a></p>
-            <br>
-            
-
-            {% if marketneeddata.directrisks %}
-              {% for m in marketneeddata.directrisks %}
-                <div> <a href="addrisk?id={{m.id}}">{{m.name}}</a> | {{m.summary}} | <b>Ranking: {{m.rating}}</b> | </div>
-                <br>
-              {% endfor %}
-            {% else %}
-              <p>No risks found, what a great day!</p>
-            {% endif %} 
-
-
-             <div><hr class="style4"></div>
-
-            <br>
-            <div><h4>Key associated risks and drivers in related markets</h4></div>
-            <br>
-            <p>{{marketneeddata.relatedrisks}}</p>
-            <div><hr class="style4"></div>
-            <br>
-            <div><h4>Funders truly in this market for this specific need</h4></div>
-            <br>
-            <p>Big VC, Big grant co</p>
-
 
 <!--
             {% if graknData %}
