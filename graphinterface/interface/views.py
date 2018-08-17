@@ -107,7 +107,7 @@ def marketanalysis(request):
 			
 			customers=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (customer:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
 
-			requirements=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
+			requirements=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i, has importance $imp; get $n, $i, $imp;')
 
 
 			# pull in sits withinmarkets and get all their requirements
@@ -130,15 +130,15 @@ def marketanalysis(request):
 			requirementssarray=[]
 			if requirements:
 				for req in requirements:
-					requirementssarray.append({'name':req['n']['value'],'id':req['i']['value']})		
+					requirementssarray.append({'name':req['n']['value'],'id':req['i']['value'], 'importance':req['imp']['value']})		
 
 			# attach requirements from related markets		
 			if sitswithinmarkets:
 				for i in range(0,len(sitswithinmarkets)):
-					req2 = client.execute('match $x isa marketneed, has identifier "'+sitswithinmarkets[i]['i']['value']+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
+					req2 = client.execute('match $x isa marketneed, has identifier "'+sitswithinmarkets[i]['i']['value']+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i, has importance $imp; get $n, $i, $imp;')
 
 					for req in req2:
-						requirementssarray.append({'name':req['n']['value'],'id':req['i']['value']})	
+						requirementssarray.append({'name':req['n']['value']+' importance: '+req['imp']['value'],'id':req['i']['value'],'importance':req['imp']['value']})	
 		
 
 
@@ -147,6 +147,7 @@ def marketanalysis(request):
 			
 			comparisonTable=[]
 			colourTable=[]
+			rankingdict={1:10, 2:25, 3:150, 4:500, 5:1000}
 
 			if requirementssarray:
 
@@ -155,7 +156,8 @@ def marketanalysis(request):
 				for comp in competitors:
 
 					performanceArray=[]
-					performanceArray.append({'val':comp['n']['value'],'col':'light'})
+					performanceArray.append({'val':comp['n']['value'],'col':'light','id':comp['i']['value']})
+					score=0
 
 					for req in requirementssarray: # something wacky with append above requires this zero
 						# find if the requirement has any solutions associated specifically for this product (built the relationship but couldn't get to work in one command so using product id as a key, could be better)
@@ -164,6 +166,10 @@ def marketanalysis(request):
 						if sol:
 								
 							sol=sol[0]
+
+							# work out the score fresh like bakers bread
+							score += (rankingdict[int(req['importance'])]*int(sol['s']['value'])) # int to round down
+							# save said score for quick access from other pages
 
 							performanceArray.append({'val':int(sol['s']['value']), 'col':'success'})
 
@@ -176,10 +182,11 @@ def marketanalysis(request):
 						else:
 							performanceArray.append({'val':0, 'col':'danger'})
 
+					score = int(score/len(requirementssarray))		
+					performanceArray.append({'val': score, 'col': 'light'})	
 					comparisonTable.append(performanceArray)
 
-			print("***")		
-			print(comparisonTable)	
+			comparisonTable.sort(key=lambda x: x[len(performanceArray)-1]['val'], reverse=True)			
 
 						#	requirementssarray.append({'name':req['n']['value'],'requirementid':req['i']['value'],'importance':req['p']['value'],
 						#	'solutionname': sol['n']['value'],'solutionid': sol['i']['value'], 'status': sol['s']['value'], 'confidence': sol['co']['value'], 'productid':identifier, 'marketid':marketid, 'highlight':highlight})		
@@ -488,7 +495,7 @@ def addrequirement(request):
 
 				# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
 		else:
-			identifier = request.GET.get('reqid')
+			identifier = request.GET.get('id')
 			if identifier:
 				form = 	addRequirementForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
 			else:

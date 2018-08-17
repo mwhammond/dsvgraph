@@ -44,43 +44,14 @@
 
             </div>
 
-             <br>
-            <br>
-             <div><hr class="style4"></div>
-            <div><h4>Key requierments to meet</h4></div>
-            <br>
 
-
-            {% if marketneeddata.requirements %}
-              {% for entity in marketneeddata.requirements %}
-                <div> <a href="addrequirement?id={{entity.id}}" target="blank">{{entity.name}}</a> | Short description | </div>
-              {% endfor %}
-            {% else %}
-              <p>No requirements set</a></p>
-            {% endif %} 
-            <br>
-            <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a>
-
-            <br>
-            <div><hr class="style4"></div>
-            <br>
-
-
+<br>
+<br>
 
 
             <div><h4>Ranked proposals and competition</h4></div>
       <br>
-            {% if marketneeddata.competitors %}
-              {% for entity in marketneeddata.competitors %}
-                <div> <a href="addcompetitor?id={{entity.id}}">{{entity.name}}</a> Score: 70% <span class="badge badge-danger">Threat</span> | </div>
-              {% endfor %}
-            {% else %}
-              <p>No competition found, chucks away!</p>
-            {% endif %} 
-            </p>
- 
-<br>
-<br>
+
 
            {% if marketneeddata.comparisonTable %}
 
@@ -91,16 +62,26 @@
       <th scope="col">Competitor</th>
       {% for entity in marketneeddata.requirements %}
       <th class="rotate" scope="col">{{entity.name}}</th>
-
       {%endfor%}
+      <th class="rotate" scope="col">Score</th>
  </tr>
 </thead>
 <tbody>      
   
               {% for r in marketneeddata.comparisonTable %}
                 <tr>
-                  {% for item in r%}
-                  <td class="table-{{item.col}}">{{item.val}}</td>
+                  {% for item in r %}
+                     
+                  <td class="table-{{item.col}}">
+                    {%if item.id%}
+                    <a href="addcompetitor?id={{item.id}}">
+                      {% endif %}
+                    {{item.val}}
+                    {%if item.id%}
+                  </a>
+                  {% endif %}
+
+                </td>
                   {% endfor %}
                  </tr>
               {% endfor %}
@@ -125,16 +106,27 @@
 
 
 
-
-
-
-
-
-
-
+             <br>
             <br>
              <div><hr class="style4"></div>
-             <br> 
+            <div><h4>Key requierments to meet</h4></div>
+            <br>
+
+
+            {% if marketneeddata.requirements %}
+              {% for entity in marketneeddata.requirements %}
+                <div> <a href="addrequirement?id={{entity.id}}" target="blank">{{entity.name}}</a> | Importance: {{entity.importance}} | </div>
+              {% endfor %}
+            {% else %}
+              <p>No requirements set</a></p>
+            {% endif %} 
+            <br>
+            <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a>
+
+            <br>
+            <div><hr class="style4"></div>
+            <br>
+
 
 
             <div><h4>Customers</h4></div>
