@@ -1,85 +1,221 @@
-{% extends "base.html" %}
+{% extends "base2.html" %}
 {% block content %}
 
-<div class="container-fluid">
+        <div class="page-wrapper">
+            <!-- Bread crumb -->
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h3 class="text-primary">Home</h3> </div>
+                <div class="col-md-7 align-self-center">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="javascript:void(0)">Explore</a></li>
+                        <li class="breadcrumb-item active">Home</li>
+                    </ol>
+                </div>
+            </div>
+            <!-- End Bread crumb -->
+            <!-- Container fluid  -->
+            <div class="container-fluid">
+                <!-- Start Page Content -->
+
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card p-30">
+                            <div class="media">
+                                <div class="media-left meida media-middle">
+                                    <span><i class="fas fa-table f-s-40 color-primary"></i></span>
+                                </div>
+                                <div class="media-body media-text-right">
+                                    <h2>{{marketneedcount}}</h2>
+                                    <p class="m-b-0"><a href="allmarketneeds">Opportunities</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-30">
+                            <div class="media">
+                                <div class="media-left meida media-middle">
+                                    <span><i class="fas fa-project-diagram f-s-40 color-primary"></i></span>
+                                </div>
+                                <div class="media-body media-text-right">
+                                    <h2>{{products}}</h2>
+                                    <p class="m-b-0"><a href="allproducts">Projects</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-30">
+                            <div class="media">
+                                <div class="media-left meida media-middle">
+                                    <span><i class="fas fa-list-ol f-s-40 color-warning"></i></span>
+                                </div>
+                                <div class="media-body media-text-right">
+                                    <h2>{{requirementcount}}</h2>
+                                    <p class="m-b-0">Identified risks</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-30">
+                            <div class="media">
+                                <div class="media-left meida media-middle">
+                                    <span><i class="fas fa-check f-s-40 color-success"></i></span>
+                                </div>
+                                <div class="media-body media-text-right">
+                                    <h2>{{solutioncount}}</h2>
+                                    <p class="m-b-0">Approaches</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
 
   <div class="row">
 
 
-    <div class="col-md-12">
-      <div class="row no-gutter">
+
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Top projects </h4>
+                             <div><a href="/explore/allproducts" class="btn btn-primary" role="button">All projects</a>
+                             <a href="/explore/addcompetitor" class="btn btn-primary" role="button">Add project</a></div>
+   
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Score</th>
+ 
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        {% if projects %}
+                                         {% for entity in projects %}  
+
+                                            <tr>
+                                                <td><a href="/explore/{{projectlink}}?id={{entity.id}}">  {{entity.name}}</a> </td>
+                                                <td class="color-primary">2500</td>
+                                            </tr>
+
+                                          {% endfor %}
+                                          {% else %}
+                                        <p>Nothing found :(</p>
+                                        {% endif %}  
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 
 
-        <div class="col-md-6">
-
-     <h4>Projects</h4>
 
 
-
-            <div><a href="/explore/allproducts">View all projects</a></div>
-            <div><a href="/explore/addcompetitor">Add new project or competitor</a></div> 
-
-             <br>
-              
-            <div><p><b>Top projects</b></p></div> 
-            <div>
-              
-            {% if projects %}
-              {% for entity in projects %}
-                <div><a href="/explore/{{projectlink}}?id={{entity.id}}">  {{entity.name}}</a> </div>
-
-                
-              {% endfor %}
-            {% else %}
-              <p>Nothing found :(</p>
-            {% endif %}
-
-
-        <br>
-<div><p><b>Most active projects</b></p></div>
-<br>
+                   <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Most active opportunity areas </h4>
+                             <div><a href="/explore/allmarketneeds" class="btn btn-primary" role="button">All Opportunities</a>
+                             <a href="/explore/addmarketneed" class="btn btn-primary" role="button">Add Opportunity</a></div>
+   
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
 
 
-        </div>
-      </div>
+                                        {% if vbps %}
+                                        {% for entity in vbps %}
+                                            <tr>
+                                                <td><a href="/explore/{{vbpslink}}?id={{entity.id}}">  {{entity.name}}</a></td>
+                                                <td class="color-primary"></td>
+                                            </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <p>Nothing found :(</p>
+                                        {% endif %}
 
 
-        <div class="col-md-6">
-
-        <h4>VBPs</h4>
-
-        
-    
-        <div><a href="/explore/allmarketneeds">All areas</a></div> 
-        <div><a href="/explore/addmarketneed">Add new area</a></div>
-
-        <br>
-        <div><p><b>Most active VBPs</b></p></div>
-        <div>
-          
-            {% if vbps %}
-              {% for entity in vbps %}
-                <div><a href="/explore/{{vbpslink}}?id={{entity.id}}">  {{entity.name}}</a> </div>
-
-                
-              {% endfor %}
-            {% else %}
-              <p>Nothing found :(</p>
-            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 
 
-        </div>
-        <br>
+  </div>  
 
-         
 
-        </div>
-      </div>
-    </div>
-  </div> 
+
+
+  <div class="row">
+
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Recent additions </h4>
+
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Added by </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+
+                                        {% if updates %}
+                                        {% for entity in updates %}
+                                            <tr>
+                                                <td>{{entity.thing}}</td>
+                                                <td class="color-primary">{{entity.name}}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <p>Nothing found :(</p>
+                                        {% endif %}
+
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+  </div>  
+
+
+</div>  
+
 
 
 {% endblock %}

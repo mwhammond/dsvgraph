@@ -23,12 +23,35 @@ from django.shortcuts import redirect, render
 import grakn
 import uuid
 import datetime
+import json
+import random
+
+
 
 #import plotly
 
 client = grakn.Client(uri='http://35.197.194.67:4567', keyspace='dsvgraph')
 
 # Create your views here.
+
+# used for finding disctinct colours for graphs
+def colours(n):
+  ret = []
+  r = int(random.random() * 256)
+  g = int(random.random() * 256)
+  b = int(random.random() * 256)
+  step = 256 / n
+  for i in range(n):
+    r += step
+    g += step
+    b += step
+    r = int(r) % 256
+    g = int(g) % 256
+    b = int(b) % 256
+  return (r,g,b)  
+
+
+
 
 def index(request):
 	if not request.user.is_authenticated:
@@ -42,13 +65,13 @@ def index(request):
 			projects.append(project)
 
 
-		graknData=client.execute('match $x isa marketneed, has name $y, has identifier $z; order by $y asc; get $y,$z;') # dictionaries are nested structures
+		graknData=client.execute('match $x isa marketneed, has name $y, has identifier $z; order by $y asc; offset 0; limit 3; get $y,$z;') # dictionaries are nested structures
 		vbps=[]
 		for x in graknData:
 			vbp={'name':x['y']['value'],'id':x['z']['value']}
 			vbps.append(vbp)
 
-		onemonthback = str(datetime.datetime.now().date())	
+		#onemonthback = str(datetime.datetime.now().date())	
 
 		graknData=client.execute('match $r isa productownership, (productowner: $y, companyproduct: $c); $y has name "DSV"; $c has name $n, has identifier $i; offset 0; limit 30; get $n, $i;') # dictionaries are nested structures
 		projects=[]
@@ -57,8 +80,23 @@ def index(request):
 			projects.append(project)	
 
 
+		graknData=client.execute('match $r isa owner, (creator: $y, createdby: $c); $y has name $person; $c has name $thing, has identifier $i; offset 0; limit 10; get $person, $thing, $i;') # dictionaries are nested structures
+		updates = []
+		for x in graknData:
+			update={'name':x['person']['value'],'thing':x['thing']['value'],'id':x['i']['value']}
+			updates.append(update)	
 
-		context = {'projects': projects,'vbps':vbps,'title': 'Index','projectlink': 'addcompetitor', 'vbpslink':'marketanalysis'}
+
+
+		marketneedcount = client.execute('match $x isa marketneed; aggregate count;')
+		requirementcount = client.execute('match $x isa requirement; aggregate count;')
+		solutioncount = client.execute('match $x isa solutioncomponent; aggregate count;')
+		products = client.execute('match $x isa product; aggregate count;')
+		people = client.execute('match $x isa person; aggregate count;')
+	
+
+
+		context = {'projects': projects,'vbps':vbps,'title': 'Index','projectlink': 'addcompetitor', 'vbpslink':'marketanalysis', 'updates': updates, 'marketneedcount':marketneedcount, 'requirementcount': requirementcount, 'solutioncount': solutioncount, 'products': products, 'people': people}
 
 
 		
@@ -111,10 +149,19 @@ def marketanalysis(request):
 
 
 			# pull in sits withinmarkets and get all their requirements
-			sitswithinmarkets = client.execute('match $x isa marketneed, has identifier "' +identifier+'"; (lowermarketneed:$x, $b); $b has identifier $i; get $i;')	
+			sitswithinmarkets = client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (lowermarketneed:$x, $b); $b has identifier $i, has name $n; get $i, $n;')	
 
+			submarkets = client.execute('match $x has identifier "'+identifier+'"; (topmarketneed: $x, lowermarketneed: $y); $y has name $n, has identifier $i; get $i, $n;')  
+			
+			submarketArray=[]
+			if submarkets:
+				for sub in submarkets:
+					submarketArray.append({'name':sub['n']['value'],'id':sub['i']['value']})	# !!!!! THIS NEEDS TO BE AN ABLE TO HANDLE AN ARRAY IN THE TEMPLATE !!!!!	
 
-
+			superMarketArray=[]
+			if sitswithinmarkets:
+				for sup in sitswithinmarkets:
+					superMarketArray.append({'name':sup['n']['value'],'id':sup['i']['value']})
 
 			customersarray=[]
 			if customers:
@@ -128,9 +175,11 @@ def marketanalysis(request):
 
 			# attach direct requirements		
 			requirementssarray=[]
+			reqNameArray=[]
 			if requirements:
 				for req in requirements:
 					requirementssarray.append({'name':req['n']['value'],'id':req['i']['value'], 'importance':req['imp']['value']})		
+					reqNameArray.append(req['n']['value'])			
 
 			# attach requirements from related markets		
 			if sitswithinmarkets:
@@ -139,7 +188,7 @@ def marketanalysis(request):
 
 					for req in req2:
 						requirementssarray.append({'name':req['n']['value']+' importance: '+req['imp']['value'],'id':req['i']['value'],'importance':req['imp']['value']})	
-		
+						reqNameArray.append(req['n']['value'])
 
 
 
@@ -147,15 +196,18 @@ def marketanalysis(request):
 			
 			comparisonTable=[]
 			colourTable=[]
-			rankingdict={1:10, 2:25, 3:150, 4:500, 5:1000}
+			rankingdict={0:10, 1:20, 2:50, 3:200, 4:500, 5:1000}
+			radarArrayAll=[]
+			comparisonTableRadar=[]
 
+	
 			if requirementssarray:
 
 				print("-------")		
 
 				for comp in competitors:
-
 					performanceArray=[]
+					rArray=[]
 					performanceArray.append({'val':comp['n']['value'],'col':'light','id':comp['i']['value']})
 					score=0
 
@@ -164,7 +216,6 @@ def marketanalysis(request):
 						sol = client.execute('match $x isa requirement, has identifier "'+req['id']+'"; (solution:$b, $x); $b has name $n, has productid "'+comp['i']['value']+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
 		
 						if sol:
-								
 							sol=sol[0]
 
 							# work out the score fresh like bakers bread
@@ -172,6 +223,7 @@ def marketanalysis(request):
 							# save said score for quick access from other pages
 
 							performanceArray.append({'val':int(sol['s']['value']), 'col':'success'})
+							rArray.append(int(sol['s']['value']))
 
 							highlight="light"
 							if int(sol['s']['value'])<2:
@@ -181,27 +233,34 @@ def marketanalysis(request):
 
 						else:
 							performanceArray.append({'val':0, 'col':'danger'})
+							rArray.append(0)
 
 					score = int(score/len(requirementssarray))		
-					performanceArray.append({'val': score, 'col': 'light'})	
+					performanceArray.append({'val': score, 'col': 'light'})
 					comparisonTable.append(performanceArray)
 
-			comparisonTable.sort(key=lambda x: x[len(performanceArray)-1]['val'], reverse=True)			
+					rgba = colours(1)
+					rgba4 = rgba+(0.2,)
 
-						#	requirementssarray.append({'name':req['n']['value'],'requirementid':req['i']['value'],'importance':req['p']['value'],
-						#	'solutionname': sol['n']['value'],'solutionid': sol['i']['value'], 'status': sol['s']['value'], 'confidence': sol['co']['value'], 'productid':identifier, 'marketid':marketid, 'highlight':highlight})		
-						#else:
-						#	requirementssarray.append({'name':req['n']['value'],'requirementid':req['i']['value'],'importance':req['p']['value'],
-						#	'solutionname': 'Add new','solutionid': "", 'status': 'None', 'confidence': 'None','productid':identifier, 'marketid':marketid, 'highlight':"danger"})		
-										
-
-		########## END Competiro analysis table
+					radarArray = {'name': comp['n']['value'], 'solutionValues': rArray, 'rgba':str(rgba), 'rgba4':str(rgba4) }
+				
+					radarArrayAll.append(radarArray)
 
 
+				comparisonTable.sort(key=lambda x: x[len(performanceArray)-1]['val'], reverse=True)	
 
-			marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customersarray, 'competitors': competitorsarray, 'requirements': requirementssarray, 'comparisonTable': comparisonTable, 'colourTable': colourTable}
+		
+		reqNameArray = json.dumps(reqNameArray)
 
-			context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata}
+
+
+		# find sub markets and top markets
+
+
+
+		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customersarray, 'competitors': competitorsarray, 'requirements': requirementssarray, 'comparisonTable': comparisonTable, 'colourTable': colourTable, 'submarketArray': submarketArray, 'superMarketArray': superMarketArray}
+
+		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata, 'radarArrayAll': radarArrayAll, 'reqNameArray': reqNameArray}
 		
 		return render(request, 'interface/analysis.html', context)
 		# database access here	
@@ -221,7 +280,7 @@ def allmarketneeds(request):
 			singleentity={'name':x['y']['value'],'id':x['z']['value']}
 			allentities.append(singleentity)
 
-		context = {'graknData': allentities,'title': 'All Market Needs','link': 'marketanalysis', 'addlink':'addmarketneed'}
+		context = {'graknData': allentities,'title': 'All Opportunities','link': 'marketanalysis', 'addlink':'addmarketneed'}
 		return render(request, 'interface/viewall.html', context)
 		# database access here	
 
@@ -321,6 +380,8 @@ def addcompetitor(request):
 					for market in allmarkets:
 						requirements=client.execute('match $x isa marketneed, has identifier "'+market+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i, has category $c, has importance $p; get $n, $i, $c, $p;')
 						allrequirements.append(requirements)
+						print("market",market)
+						print("req", requirements[0]['i']['value'])
 
 
 				#	if sitswithinmarkets:
@@ -539,7 +600,7 @@ def addsolution(request):
 
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
-					client.execute('match $x isa solutioncomponent, has name $n, has summary $s, has confidence $c, has state $st, has category $ca, has identifier "'+identifier+'"; delete $n, $s, $c, $st, $ca;')
+					client.execute('match $x isa solutioncomponent, has name $n, has summary $s, has confidence $c, has status $st, has category $ca, has identifier "'+identifier+'"; delete $n, $s, $c, $st, $ca;')
 					# Delete specific relationships
 					client.execute('match $r ($x) isa requirementmatch; $x isa solutioncomponent has identifier "'+identifier+'"; delete $r;')		
 

@@ -1,77 +1,121 @@
-{% extends "base.html" %}
+{% extends "base2.html" %}
 {% block content %}
-        
+ 
 
-       <h3>{{pagetitle}}</h3>
+         <div class="page-wrapper">
+            <!-- Bread crumb -->
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h3 class="text-primary">Analysis: {{marketneeddata.name}}</h3> </div>
+                <div class="col-md-7 align-self-center">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="javascript:void(0)">Home</a></li>
+                        <li class="breadcrumb-item active">Edit competitor: {{marketneeddata.name}}</li>
+                    </ol>
+                </div>
+            </div>
+            <!-- End Bread crumb -->
+            <!-- Container fluid  -->
+            <div class="container-fluid">
+                <!-- Start Page Content -->
 
 
-    <form action={{action}} method="post">
-    {% csrf_token %}
 
-       <form class="form-horizontal">
+       <div class="row">
+                    <div class="col-lg-10">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Edit competitor</h4>
 
+                            </div>
+                            <div class="card-body">
+
+                                <div class="basic-form">
+
+                                  <form action={{action}} method="post">
+                                    {% csrf_token %}
+
+
+                                  {% if form.errors %}
+                                              {% for field in form %}
+                                                  {% for error in field.errors %}
+                                                      <div class="alert alert-danger">
+                                                          <strong>{{ error|escape }}</strong>
+                                                      </div>
+                                                  {% endfor %}
+                                              {% endfor %}
+                                              {% for error in form.non_field_errors %}
+                                                  <div class="alert alert-danger">
+                                                      <strong>{{ error|escape }}</strong>
+                                                  </div>
+                                              {% endfor %}
+
+                                          {% endif %}
+
+
+
+                                          {% if messages %}
+                                              {% for message in messages %}
+                                              {% if message.tags %}
+                                              <div class="alert alert-success">
+                                                <strong>{{ message }}</strong>
+                                              </div>
+                                              {% endif %}
+                                              {% endfor %}
+                                          {% endif %}
+
+
+                                              {% for field in form.visible_fields %}
+
+                                              <div class="form-group">
+                                                 <div>{{ field.label_tag }}</div>
+                                                {{ field }}
+                                                </div>
+                                                  {% endfor %}
+
+                                                 {% for field in form.hidden_fields %}
+
+                                             <div>{{ field }}</div>
+
+                                               {% endfor %}
+
+                                               <button type="submit" class="btn btn-primary">Save</button>
+                                                </form>
+
+                                                <br>
+                                                <a href="/explore/deleteentity?id={{request.GET.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete Forever</a>
+
+                                          <!--  <p class="text-muted m-b-15 f-s-12">Use the input classes on an <code>input-default</code> for Default input.</p> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+
+               </div>  
+ 
 
 <!-- Form Name -->
 
 
+  <div class="row">
+                    <div class="col-lg-10">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Edit opportunity fit</h4>
 
-{% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert alert-danger">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
+                            </div>
+                            <div class="card-body">
 
-{% endif %}
+                              {% if requirements %}
 
-
-
-{% if messages %}
-    {% for message in messages %}
-    {% if message.tags %}
-    <div class="alert alert-success">
-      <strong>{{ message }}</strong>
-    </div>
-    {% endif %}
-    {% endfor %}
-{% endif %}
-
-<br>
-{% for field in form.visible_fields %}
-    <div class="form-group">
-       <div>{{ field.label_tag }}</div>
-      {{ field }}
-    </div>
-  {% endfor %}
-
-{% for field in form.hidden_fields %}
-
-  <div>{{ field }}</div>
-
-{% endfor %}
-
-
-<br>
-<h4>Project potential analysis</h4>
-
-
-{% if requirements %}
-
-<div id="table">
-<table class="table">
-<thead>
-    <tr>
-      <th scope="col">Market requirement</th><th scope="col">Category</th><th scope="col">Importance</th><th scope="col">Approach</th><th scope="col">State</th><th scope="col">Confidence</th>
- </tr>
-</thead>
-<tbody>      
+                        <div id="table">
+                        <table class="table">
+                        <thead>
+                            <tr>
+                              <th scope="col">Market requirement</th><th scope="col">Category</th><th scope="col">Importance</th><th scope="col">Approach</th><th scope="col">State</th><th scope="col">Confidence</th>
+                         </tr>
+                        </thead>
+                        <tbody>      
   
               {% for entity in requirements %}
 
@@ -100,33 +144,18 @@
 </table>
 </div>
 <br>
-<a href="/explore/addrequirement?marketid={{marketid}}" target="blank">Add requirement</a>
+<a href="/explore/addrequirement?marketid={{marketid}}" target="blank" class="btn btn-primary" role="button">Add requirement</a>
 
-            <br>
-            <div><hr class="style4"></div>
-            <br>
-            <br>
-<!--
-<div><a href="addcompany" target="_blank">Add company</a> | <a href="addtechnology" target="_blank">Add Technologoy</a> | <a href="addbusinessmodel" target="_blank">Add business model</a> | <a href="addmarketneed" target="_blank">Add market need</a></div>
-<div><i>Links open in new window, save and refresh to appear here</i></div>
-<br>
--->
+                            
+                            </div>
+                        </div>
+                    </div>
+</div>
+
+  
 
 
 
-<button type="submit" class="btn btn-primary">Save</button>
-</form>
-<br>
-<br>
-<a href="/explore/deleteentity?id={{request.GET.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete Forever</a>
 
-        
-      </div>  
-      
-      
-      
-
-      <div class="row marketing">
-        
 
 {% endblock %}

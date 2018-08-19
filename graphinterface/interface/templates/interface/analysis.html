@@ -1,24 +1,361 @@
-{% extends "base.html" %}
+{% extends "base2.html" %}
 {% block content %}
+
+
+
+
+
+
+
+        <div class="page-wrapper">
+            <!-- Bread crumb -->
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h3 class="text-primary">Analysis: {{marketneeddata.name}}</h3> </div>
+                <div class="col-md-7 align-self-center">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="javascript:void(0)">Home</a></li>
+                        <li class="breadcrumb-item active">Analysis: {{marketneeddata.name}}</li>
+                    </ol>
+                </div>
+            </div>
+            <!-- End Bread crumb -->
+            <!-- Container fluid  -->
+            <div class="container-fluid">
+                <!-- Start Page Content -->
+
+      <div class="row">
+
+
 
       <!-- Main part of the page -->
 
+
+
+
+
+      <div class="col-lg-12">
+          <div class="card">
+              <div class="card-title">
+                  <h4>{{marketneeddata.name}}</h4>
+              </div>
+                   <div class="card-body">
+                    <div><p>{{marketneeddata.summary}}</p></div>
+                    <br>
+                    <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
+                    <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete VBP</a>
+              
+                  </div>
+            </div>
+      </div>
+
+</div>
+
+
+
+  <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Key requirements </h4>
+                             <div> <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a></div>
+   
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Importance</th>
+ 
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        {% if marketneeddata.requirements %}
+                                         {% for entity in marketneeddata.requirements %}  
+
+                                            <tr>
+                                                <td><a href="addrequirement?id={{entity.id}}" target="blank"> {{entity.name}}</a> </td>
+                                                <td class="color-primary">{{entity.importance}}</td>
+                                            </tr>
+
+                                          {% endfor %}
+                                          {% else %}
+                                        <p>Nothing found :(</p>
+                                        {% endif %}  
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+    </div> <!-- row -->
+
+
+
+<!-- INCLUDES SUB MARKETS -->
+
+  <div class="row">
+
+  
+
+                      <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Sits within opportunity areas</h4>
+                             <div> <a href="/explore/addmarketneed" class="btn btn-primary" role="button" target="blank">Add new area</a></div>
+   
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                          {% if marketneeddata.superMarketArray  %}
+
+                                         {% for entity in marketneeddata.superMarketArray %}  
+
+                                            <tr>
+                                                <td><a href="marketanalysis?id={{entity.id}}" target="blank">{{entity.name}}</a> </td>
+                                                <!--<td class="color-primary">{{entity.importance}}</td> -->
+                                                <td></td>
+                                            </tr>
+
+                                          {% endfor %}
+              
+                                 {% endif %}  
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- END OF UPPER MARKETS -->
+
+
+
+                   <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Includes sub opportunity areas </h4>
+                             <div> <a href="/explore/addmarketneed" class="btn btn-primary" role="button" target="blank">Add new area</a></div>
+   
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% if marketneeddata.submarketArray  %}
+                                         {% for entity in marketneeddata.submarketArray %}  
+
+                                            <tr>
+                                                <td><a href="marketanalysis?id={{entity.id}}" target="blank">{{entity.name}}</a> </td>
+                                                <!--<td class="color-primary">{{entity.importance}}</td> -->
+                                                <td></td>
+                                            </tr>
+
+                                          {% endfor %}
+              
+                                {% endif %} 
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- END OF SUB MARKETS -->
+
+
+
+    </div> <!-- row -->
+
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="row">
+
+
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Ranked projects</h4>
+                             <div> <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Competitor</a></div>
+   
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table">
+                                       {% if marketneeddata.comparisonTable %}
+                                        <thead>
+                                         <tr>
+                                          <th scope="col">Competitor</th>
+                                          {% for entity in marketneeddata.requirements %}
+                                          <th class="rotate" scope="col">{{entity.name}}</th>
+                                          {%endfor%}
+                                          <th class="rotate" scope="col">Score</th>
+                                        </tr>
+                                        </thead>
+                                          <tbody>      
+                                          
+                                                      {% for r in marketneeddata.comparisonTable %}
+                                                        <tr>
+                                                          {% for item in r %}
+                                                             
+                                                          <td class="table-{{item.col}}">
+                                                            {%if item.id%}
+                                                            <a href="addcompetitor?id={{item.id}}">
+                                                              {% endif %}
+                                                            {{item.val}}
+                                                            {%if item.id%}
+                                                          </a>
+                                                          {% endif %}
+
+                                                        </td>
+                                                          {% endfor %}
+                                                         </tr>
+                                                      {% endfor %}
+
+                                          {% else %}
+                                            <p>No comparison table found found</p>
+                                          {% endif %} 
+                                                
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+</div>
+
+<div class="row">
+
+
+ <!-- Radar Chart -->
+                    <div class="col-lg-12">
+                         <div class="card">
+                            <div class="card-title">
+                                <h4>Projects compared</h4>
+
+                            </div>
+                            <div class="sales-chart">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+</div>
+
+
+
+<div class="row">
+
+
+
+
+
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Key Customers </h4>
+                             <div><a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Customer</a></div>
+   
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th></th>
+ 
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        {% if marketneeddata.customers %}
+                                         {% for entity in marketneeddata.customers %}  
+
+                                            <tr>
+                                                <td><a href="addrequirement?id={{entity.id}}" target="blank"> {{entity.name}}</a> </td>
+                                               <!-- <td class="color-primary">{{entity.importance}}</td> -->
+                                            </tr>
+
+                                          {% endfor %}
+                                          {% else %}
+                                        <p>Nothing found :(</p>
+                                        {% endif %}  
+
+
+
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+
+
+
+
+</div>
+
+</div>
+
+
+
+
+   
+
     <!--  <div><a href="/explore/{{link}}">Add new</a></div> -->
 
-      <div class="row marketing">
-        <div class="col-lg-12">
-
+      
 <!--
             <div>Business Model <a href="/explore/addbusinessmodel">Add</a>, <a href="/explore/allbusinessmodels">View All</a></div>
            <div>Market <a href="/explore/addmarket">Add</a>, <a href="/explore/allmarkets">View All</a></div> 
             <div>Directly Add Risk / Impact Factor to Market, Business Model or Technology <a href="/explore/addrisk">Add</a>, <a href="/explore/allrisk">View All</a></div>
 -->
-            <div><h3>{{marketneeddata.name}}</h3></div>
-
-   
-
-            <div><p>{{marketneeddata.summary}}</p></div>
-            <br>
             <!--
             <div><h4>Current graph analysis</h4></div>
             <div><p>£{{marketneeddata.size}} million is a <b>significant market size</b> +5</p></div>
@@ -34,134 +371,47 @@
 
 
 
+<script>
+var ctx = document.getElementById("radarChart").getContext('2d');
+var myChart = new Chart(ctx, {
+    type: 'radar',
+   data: {
+    labels: {{reqNameArray|safe}},
+    datasets: [
+
+      {% for entity in radarArrayAll %}
+      {
+        'label': "{{entity.name}}", 
+        data: {{entity.solutionValues}},
+        'fill': true,
+        "backgroundColor":"rgba{{entity.rgba4}}",
+        "borderColor":"rgb{{entity.rgba}}",
+        "pointBackgroundColor":"rgb{{entity.rgba}}",
+        "pointBorderColor":"#fff",
+        "pointHoverBackgroundColor":"#fff",
+        "pointHoverBorderColor":"rgb{{entity.rgba}}"
+    }, 
+
+  {%endfor%}
+
+    ]
+}, 
+options: {
+    scale: {
+        // Hides the scale
+        display: true
+    }
+}
+});
+</script>
+
+
+
+
 
 
             <!--<div><p><b>Related markets:</b> {{marketneeddata.relatedmarkets}}</p></div>-->
-            <div>
-            <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
-            <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete VBP</a>
-            
-
-            </div>
 
 
-<br>
-<br>
-
-
-            <div><h4>Ranked proposals and competition</h4></div>
-      <br>
-
-
-           {% if marketneeddata.comparisonTable %}
-
-<div id="table">
-<table class="table table-header-rotated">
-<thead>
-    <tr>
-      <th scope="col">Competitor</th>
-      {% for entity in marketneeddata.requirements %}
-      <th class="rotate" scope="col">{{entity.name}}</th>
-      {%endfor%}
-      <th class="rotate" scope="col">Score</th>
- </tr>
-</thead>
-<tbody>      
-  
-              {% for r in marketneeddata.comparisonTable %}
-                <tr>
-                  {% for item in r %}
-                     
-                  <td class="table-{{item.col}}">
-                    {%if item.id%}
-                    <a href="addcompetitor?id={{item.id}}">
-                      {% endif %}
-                    {{item.val}}
-                    {%if item.id%}
-                  </a>
-                  {% endif %}
-
-                </td>
-                  {% endfor %}
-                 </tr>
-              {% endfor %}
-
-            {% else %}
-              <p>No comparison table found found</p>
-            {% endif %} 
-        
-</tbody>
-</table>
-</div>
-
-
-
-           <br>
-            <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Competitor</a>
-           <!-- <a href="/explore/addproject?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add new solution</a> -->
-
-
-
-
-
-
-
-             <br>
-            <br>
-             <div><hr class="style4"></div>
-            <div><h4>Key requierments to meet</h4></div>
-            <br>
-
-
-            {% if marketneeddata.requirements %}
-              {% for entity in marketneeddata.requirements %}
-                <div> <a href="addrequirement?id={{entity.id}}" target="blank">{{entity.name}}</a> | Importance: {{entity.importance}} | </div>
-              {% endfor %}
-            {% else %}
-              <p>No requirements set</a></p>
-            {% endif %} 
-            <br>
-            <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a>
-
-            <br>
-            <div><hr class="style4"></div>
-            <br>
-
-
-
-            <div><h4>Customers</h4></div>
-            <br>
-
-
-            {% if marketneeddata.customers %}
-              {% for entity in marketneeddata.customers %}
-                <div> <a href="addcustomer?id={{entity.id}}">{{entity.name}}</a> | Short description | </div>
-              {% endfor %}
-            {% else %}
-              <p>No customers found, that's not good!</p>
-            {% endif %} 
-
-            <br>
-            <a href="/explore/addcustomer?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Customer</a>
-
-
-             <div><hr class="style4"></div>
-            <br>
-
-<!--
-            {% if graknData %}
-              {% for entity in graknData %}
-                <div>{{entity.name}} [<a href="/explore/{{link}}?id={{entity.id}}">Edit</a>, <a href="/explore/deleteentity?id={{entity.id}}">Delete</a>]</div>
-              {% endfor %}
-            {% else %}
-              <p>Nothing found :(</p>
-            {% endif %}
-
-            </p>
--->
-
-      <br>
-      <br>
-      <div><hr class="style4"></div>
 
 {% endblock %}
