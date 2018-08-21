@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['35.197.194.67', '127.0.0.1', 'localhost']
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Application definition
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'interface',
     'users',
+    'django_summernote',
 ]
 
 MIDDLEWARE = [

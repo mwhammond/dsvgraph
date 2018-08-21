@@ -95,7 +95,7 @@
  
 
 <!-- Form Name -->
-
+   {% if requirements %}
 
   <div class="row">
                     <div class="col-lg-10">
@@ -106,7 +106,7 @@
                             </div>
                             <div class="card-body">
 
-                              {% if requirements %}
+                           
 
                         <div id="table">
                         <table class="table">
@@ -133,10 +133,7 @@
                  </tr>
               {% endfor %}
 
-            {% else %}
-              <p>No requirements found</p>
-            {% endif %} 
-            </p>
+       
 
 
    </tr>
@@ -151,6 +148,8 @@
                         </div>
                     </div>
 </div>
+
+            {% endif %} 
 
   
 
