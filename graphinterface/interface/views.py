@@ -335,6 +335,7 @@ def addcompetitor(request):
 
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
 				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+				summary = html.escape(form.cleaned_data['summary'],quote=True)
 
 				companychoice = form.cleaned_data['companychoice']
 				#technologychoice = form.cleaned_data['technologychoice']
@@ -480,6 +481,7 @@ def addcompany(request):
 
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
 				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+				summary = html.escape(form.cleaned_data['summary'],quote=True)
 
 				productownership = form.cleaned_data['productownership']
 				marketneedchoice = form.cleaned_data['marketneedchoice']

@@ -26,6 +26,7 @@
                         <div class="card">
                             <div class="card-title">
                                 <h4>Edit competitor</h4>
+                              <div><a href="/explore/addcompetitor" class="btn btn-primary" role="button">Add another</a></div>
 
                             </div>
                             <div class="card-body">
@@ -67,7 +68,8 @@
 
                                               {% for field in form.visible_fields %}
 
-                                              <div class="form-group">
+
+                                              <div class="form-group"> 
                                                  <div>{{ field.label_tag }}</div>
                                                 {{ field }}
                                                 </div>

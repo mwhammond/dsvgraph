@@ -109,7 +109,7 @@ def getEntries(type):
 class addCompetitorForm(forms.Form):
 
 	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), label='Project name')
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}), label='Description')
+	summary = forms.CharField(widget=SummernoteWidget(), label='Description')
 	companychoice = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control','placeholder':'Project name'}), choices=getEntries('company'), label='Part of company')
 
 			
@@ -157,6 +157,7 @@ class addCompetitorForm(forms.Form):
 			marketneedchoiceSelection = client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $d; get $d;')	
 
 
+
 			# QUESTION IS WHAT DO I ADD THIS TOO???	
 
 			if companychoiceSelection:
@@ -170,12 +171,14 @@ class addCompetitorForm(forms.Form):
 
 			savedNameSelection = savedNameSelection[0]['y']['value']
 			savedSummarySelection = savedSummarySelection[0]['y']['value']
+			savedSummarySelection = html.unescape(savedSummarySelection)
+
 
 			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 
 			self.fields['name'] = name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}), initial=savedNameSelection, label='Project name')
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4",'class':'form-control','placeholder':'Description'}),initial=savedSummarySelection, label='Description')
+			self.fields['summary'] = forms.CharField(widget=SummernoteWidget(),initial=savedSummarySelection, label='Description')
 			self.fields['companychoice'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label='Part of company', choices=getEntries('company'),initial=companychoiceSelection)
 
 
@@ -207,7 +210,8 @@ class addCompanyForm(forms.Form):
 	fundingstageoptions = [("Pre-seed",'Pre-seed'),("Seed","Seed"),("Series A","Series A"),("Growth","Growth"),("Public", "Public"),("Zombie", "Zombie"),("Dead", "Dead"),("Grant life", "Grant life")]	
 
 	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Company name'}),label="Company name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	summary = forms.CharField(widget=SummernoteWidget(), label='Description')
+
 	fundingstage = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='State:',choices=fundingstageoptions, required=False)
 
 	marketneedchoice = forms.MultipleChoiceField(label='Market Need Set', choices=getEntries('marketneed'), required=False)
@@ -247,6 +251,8 @@ class addCompanyForm(forms.Form):
 			savedNameSelection = attributes[0]['n']['value']
 			savedSummarySelection = attributes[0]['s']['value']
 			fundingstage = attributes[0]['f']['value']
+			savedSummarySelection = html.unescape(savedSummarySelection)
+
 
 
 			if marketneedchoiceSelection:
@@ -264,7 +270,7 @@ class addCompanyForm(forms.Form):
 			# ADD HIDDEN FIELD SO THAT THE VIEW KNOWS THAT THIS IS DELETE THEN ADD MODE
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)
 			self.fields['name'] = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Project name'}),label="Company name", max_length=100, initial=savedNameSelection)
-			self.fields['summary'] = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4"}),initial=savedSummarySelection)
+			self.fields['summary'] = forms.CharField(widget=SummernoteWidget(),initial=savedSummarySelection)
 			self.fields['marketneedchoice'] = forms.MultipleChoiceField(label='Market Need', choices=getEntries('marketneed'), initial=marketchoices, required=False)
 			self.fields['productownership'] = forms.MultipleChoiceField(label='Company products', choices=getEntries('product'), required=False, initial=productchoices)
 			self.fields['fundingstage'] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}),label='State:',choices=fundingstageoptions, required=False,initial=fundingstageoptions)
