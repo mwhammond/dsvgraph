@@ -16,8 +16,12 @@
     <!-- Bootstrap Core CSS -->
     <link href="{% static "css/lib/bootstrap/bootstrap.min.css" %}" rel="stylesheet">
     <!-- Custom CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
 
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+    <link href="{% static "css/bootstrap-tagsinput.css" %}" rel="stylesheet">
 
 
     <link href="{% static "css/lib/calendar2/semantic.ui.min.css" %}" rel="stylesheet">
@@ -35,6 +39,16 @@
     <script src="https:**oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="https:**oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 <![endif]-->
+
+<!--
+
+    <script src=" {% static "js/bootstrap-tagsinput.js" %}" ></script>
+    <script src=" {% static "js/typeahead.bundle.js" %}" ></script>
+-->
+
+
+
+
 </head>
 
 <body class="fix-header fix-sidebar">
@@ -50,7 +64,7 @@
             <nav class="navbar top-navbar navbar-expand-md navbar-light">
                 <!-- Logo -->
                 <div class="navbar-header">
-                    <a class="navbar-brand align-left" href="">
+                    <a class="navbar-brand align-left" href="/explore">
                         <!-- Logo icon --> 
                         <b><img src=" {% static "/images/DSV-KG-logo.png" %}" alt="DSV KG" width="100"></b> 
                         <!--End Logo icon -->
@@ -303,6 +317,19 @@
                                 <li><a href="chart-peity.html">Peity</a></li>
                             </ul> -->
                         </li>
+                          <li> <a " href="alltechnologies" aria-expanded="false"><i class="fas fa-microchip"></i><span class="hide-menu">All Technologies</span></a>
+                         <!--   <ul aria-expanded="false" class="collapse">
+                                
+                                <li><a href="chart-flot.html">Flot</a></li>
+                                <li><a href="chart-morris.html">Morris</a></li>
+                                <li><a href="chart-chartjs.html">ChartJs</a></li>
+                                <li><a href="chart-chartist.html">Chartist </a></li>
+                                <li><a href="chart-amchart.html">AmChart</a></li>
+                                <li><a href="chart-echart.html">EChart</a></li>
+                                <li><a href="chart-sparkline.html">Sparkline</a></li>
+                                <li><a href="chart-peity.html">Peity</a></li>
+                            </ul> -->
+                        </li>
                         <!--
                         <li class="nav-label">Features</li>
                         <li> <a class="has-arrow  " href="#" aria-expanded="false"><i class="fa fa-suitcase"></i><span class="hide-menu">Bootstrap UI <span class="label label-rouded label-warning pull-right">6</span></span></a>
@@ -414,7 +441,7 @@
             </div>
             <!-- End Container fluid  -->
             <!-- footer -->
-            <footer class="footer"> © 2018 All rights reserved. </a></footer>
+            <footer class="footer"> DSV Graph. Version 0.1 </a></footer>
             <!-- End footer -->
         </div>
         <!-- End Page wrapper  -->
@@ -422,9 +449,7 @@
     <!-- End Wrapper -->
     <!-- All Jquery -->
 
-       <link href="{% static "css/style.css" %}" rel="stylesheet">
-
-
+    <link href="{% static "css/style.css" %}" rel="stylesheet">
 
 
     <script src=" {% static "js/lib/jquery/jquery.min.js" %}" ></script>
@@ -440,28 +465,40 @@
     <!--Custom JavaScript -->
 
 
-    <!-- Amchart -->
+   
      <script src=" {% static "js/lib/morris-chart/raphael-min.js" %}"></script>
     <script src=" {% static "js/lib/morris-chart/morris.js" %}"></script>
     <script src=" {% static "js/lib/morris-chart/dashboard1-init.js" %}"></script>
 
 
 	<script src="" {% static "js/lib/calendar-2/moment.latest.min.js" %}"></script>
-    <!-- scripit init-->
     <script src=" {% static "js/lib/calendar-2/semantic.ui.min.js" %}"></script>
-    <!-- scripit init-->
     <script src=" {% static "js/lib/calendar-2/prism.min.js" %}"></script>
-    <!-- scripit init-->
     <script src=" {% static "js/lib/calendar-2/pignose.calendar.min.js" %}"></script>
-    <!-- scripit init-->
     <script src="" {% static "js/lib/calendar-2/pignose.init.js" %}"></script>
 
     <script src=" {% static "js/lib/owl-carousel/owl.carousel.min.js" %}"></script>
     <script src=" {% static "js/lib/owl-carousel/owl.carousel-init.js" %}"></script>
+
+    
+
     <script src=" {% static "js/scripts.js" %}"></script>
     <!-- scripit init-->
 
     <script src=" {% static "js/custom.min.js" %}"></script>
+
+        <script>
+.bootstrap-tagsinput {
+  width: 100%;
+}
+</script>
+
+<script>
+$('#id_technology').css('height', '100px');
+$('#id_technologychoice').css('height', '100px');
+</script>
+
+
 
 </body>
 

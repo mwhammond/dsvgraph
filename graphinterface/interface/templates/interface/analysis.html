@@ -63,7 +63,7 @@
                         <div class="card">
                             <div class="card-title">
                                 <h4>Ranked projects</h4>
-                             <div> <a href="/explore/addcompetitor?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Competitor</a></div>
+                             <div> <a href="/explore/addProduct?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add Product</a></div>
                              <br>
                             <p>Include incumbent approaches, academia, startups potential new approaches</p>
                             </div>
@@ -87,7 +87,7 @@
                                                         <tr>
                                                           {% for item in r %}
                                                              
-                                                          <td class="table-{{item.col}}>
+                                                          <td class="table-{{item.col}}">
                                                             {%if item.id%}
                                                             <a href="addcompetitor?id={{item.id}}">
                                                               {% endif %}
@@ -143,7 +143,7 @@
                         <div class="card">
                             <div class="card-title">
                                 <h4>Key requirements </h4>
-                             <div> <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button" target="blank">Add requirement</a></div>
+                             <div> <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add requirement</a></div>
    
                             </div>
                             <div class="card-body">

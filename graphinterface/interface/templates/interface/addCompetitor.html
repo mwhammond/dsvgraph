@@ -2,6 +2,35 @@
 {% block content %}
  
 
+
+ 
+<!--
+
+<script>
+var citynames = new Bloodhound({
+  local: ["T-Cell", "T-Reg", "Lithium"],
+  datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+  queryTokenizer: Bloodhound.tokenizers.whitespace
+});
+var citynames.initialize();
+
+citynames
+.done(function() { console.log('ready to go!'); })
+.fail(function() { console.log('err, something went wrong :('); });
+
+$('input').tagsinput({
+  typeaheadjs: {
+    name: 'citynames',
+    displayKey: 'name',
+    valueKey: 'name',
+    source: citynames.ttAdapter()
+  }
+});
+</script>
+-->
+
+
+
          <div class="page-wrapper">
             <!-- Bread crumb -->
             <div class="row page-titles">
@@ -26,7 +55,7 @@
                         <div class="card">
                             <div class="card-title">
                                 <h4>Edit competitor</h4>
-                              <div><a href="/explore/addcompetitor" class="btn btn-primary" role="button">Add another</a></div>
+                              <div><a href="/explore/{{addlink}}" class="btn btn-primary" role="button">Add another</a></div>
 
                             </div>
                             <div class="card-body">
@@ -155,6 +184,7 @@
 
   
 
+<!-- This provides the sugestions -->
 
 
 

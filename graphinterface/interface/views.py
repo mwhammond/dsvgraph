@@ -6,14 +6,16 @@ from django.shortcuts import render
 from .forms import addCompanyForm
 from .forms import addMarketNeedForm
 from .forms import addCompanyForm
-from .forms import addCompetitorForm
 from .forms import addRequirementForm
 from .forms import addSolutionForm
+from .forms import addTechnologyForm
+
+from .forms import addProduct2Form
 
 
 from django.contrib import messages
 
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, render_to_response
 
 import grakn
 import uuid
@@ -86,7 +88,7 @@ def index(request):
 
 		marketneedcount = client.execute('match $x isa marketneed; aggregate count;')
 		requirementcount = client.execute('match $x isa requirement; aggregate count;')
-		solutioncount = client.execute('match $x isa solutioncomponent; aggregate count;')
+		solutioncount = client.execute('match $x isa solutionaxis; aggregate count;')
 		products = client.execute('match $x isa product; aggregate count;')
 		people = client.execute('match $x isa person; aggregate count;')
 	
@@ -113,7 +115,7 @@ def allproducts(request):
 			project={'name':x['y']['value'],'id':x['z']['value']}
 			projects.append(project)
 
-		context = {'graknData': projects,'title': 'All Projects','link': 'addcompetitor','addlink':'addcompetitor'}
+		context = {'graknData': projects,'title': 'All Projects','link': 'addProduct','addlink':'addProduct'}
 		return render(request, 'interface/viewall.html', context)
 		# database access here	
 
@@ -146,15 +148,20 @@ def marketanalysis(request):
 		print(identifier)
 		if identifier:
 			graknData=client.execute('match $x isa marketneed, has name $n, has summary $s, has identifier "'+identifier+'", has marketsize $m, has CAGR $c; get $n, $s, $m, $c;') # dictionaries are nested structures
-			
-
-			name = graknData[0]['n']['value']
-			summary = graknData[0]['s']['value']
-			size = graknData[0]['m']['value']
-			CAGR = graknData[0]['c']['value']
+			name="N/A"
+			summary="N/A"
+			size=0
+			CAGR=0
+			if graknData:
+				name = graknData[0]['n']['value']
+				summary = graknData[0]['s']['value']
+				size = graknData[0]['m']['value']
+				CAGR = graknData[0]['c']['value']
 			#competitors = ['Competitor 1 | Status: Selling | Tech: CRISPR Editing | Customers: Novartis | Funding: £26m | Exit: N/A','competitor2','competitor3']
 			
 			competitors=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (solvedby:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
+
+			# NEED O EXTEND FOR EACH SUB AREA - BEWARE DIFFERENT REQUIREMENTS ******************* OR COMPARE ON ONE PAGE?
 			
 			customers=client.execute('match $x isa marketneed, has identifier "'+identifier+'"; (customer:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
 
@@ -226,8 +233,14 @@ def marketanalysis(request):
 
 					for req in requirementssarray: # something wacky with append above requires this zero
 						# find if the requirement has any solutions associated specifically for this product (built the relationship but couldn't get to work in one command so using product id as a key, could be better)
-						sol = client.execute('match $x isa requirement, has identifier "'+req['id']+'"; (solution:$b, $x); $b has name $n, has productid "'+comp['i']['value']+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
-		
+						#sol = client.execute('match $x isa requirement, has identifier "'+req['id']+'"; (solution:$b, $x); $b has name $n, has productid "'+comp['i']['value']+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
+
+						#sol = client.execute('match $x isa requirement, has identifier "'+req['id']+'"; (solution:$b, $x); $b has name $n, has productid "'+comp['i']['value']+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
+						
+
+
+						sol = client.execute('match $x has identifier "'+req['id']+'"; $y has identifier "'+comp['i']['value']+'"; (productrequirement: $x, requirementproduct: $y) isa solutionaxis, has status $s; get;')
+
 						if sol:
 							sol=sol[0]
 
@@ -263,7 +276,7 @@ def marketanalysis(request):
 				comparisonTable.sort(key=lambda x: x[len(performanceArray)-1]['val'], reverse=True)	
 
 		
-		reqNameArray = json.dumps(reqNameArray)
+			reqNameArray = json.dumps(reqNameArray)
 
 
 
@@ -298,159 +311,237 @@ def allmarketneeds(request):
 		# database access here	
 
 
+def get_questions(identifier):
+	directAndIndirectReqs=[]
+	if identifier != None:
+		# get all of the direct requirements via the product id
+		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (requiremententity: $c, $m); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+		#get all indirect requirements
+		print("direct length:",len(directAndIndirectReqs))
+		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $b, $y); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+		#  (productrequirement: $c, requirementproduct: $i) isa solutionaxis, has status $solstatus;
 
 
-def addcompetitor(request):
+
+		print("plus indirect length:",len(directAndIndirectReqs))
+
+
+	return directAndIndirectReqs
+
+
+def addProduct(request):
+	
 	if not request.user.is_authenticated:
 		return redirect('/')
 	else:
-
-		action = 'addcompetitor'
-		pagetitle='Add Competitor'
-
-		requirementssarray=[]
-		marketid = request.GET.get('marketid')
-
+		identifier = ""
+		marketid = ""
 		if request.method == 'POST':
-			form = addCompetitorForm(data=request.POST) 
-			print(form.mystryvalue)
-			if form.is_valid():	
-				messages.success(request, 'Saved')
-				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
-				print("identifier:",identifier)
+			identifier = request.POST.get('mode') # Needs the ID to load questions even on POST
+		if request.method == 'GET':
+			identifier = request.GET.get('id')
+		marketid = request.GET.get('marketid')
+		action = 'addProduct'
+		pagetitle='Add Product'
+		addlink = 'addProduct'	
+		extra_questions=[]
+		extra_questions = get_questions(identifier)
 
-				if identifier: # i.e. we're in edit mode delete previous entity first
+		if request.method == 'POST':	
+			form = addProduct2Form(request.POST, extra=extra_questions, identifier=identifier, marketid=marketid)
+		
+
+			if form.is_valid():
+				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+				name = form.cleaned_data['name']
+				summary = form.cleaned_data['summary']
+				summary = html.escape(form.cleaned_data['summary'],quote=True)
+				companychoice = form.cleaned_data['companychoice']
+				marketneedchoice = form.cleaned_data['marketneedchoice']
+				technologychoice = form.cleaned_data['technologychoice']
+
+				if identifier != "": # i.e. we're in edit mode delete previous entity first
+					print("updating")
 					client.execute('match $x isa product, has name $n, has summary $s, has identifier "'+identifier+'"; delete $n, $s;')
-					# Delete specific relationships
-					client.execute('match $r ($x) isa productownership; $x isa product has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has updated '+str(datetime.datetime.now().date())+';')
 					
-					client.execute('match $r ($x) isa producstisinmarket; $x isa product has identifier "'+identifier+'"; delete $r;')		
+					client.execute('match $r ($x) isa productownership; $x isa product, has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $r ($x) isa producstisinmarket; $x isa product, has identifier "'+identifier+'"; delete $r;')
+
+					client.execute('match $r ($x) isa solutionaxis; $x isa product, has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $r ($x) isa technologystack; $x isa product, has identifier "'+identifier+'"; delete $r;')
+					#solutionaxis connects the product and requirement, data is storated on the relationship
 
 
 
 				else:
 					# don't delete anything and create new identifier
 					identifier = str(uuid.uuid4())
+					client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
+				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa product, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+				
+				for tech in technologychoice:
+					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+tech+'"; insert (usestech: $x, usedinproduct: $y) isa technologystack;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+	
+
+				for (question, answer) in form.extra_answers():
+					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+question[3:]+'"; insert (productrequirement: $y, requirementproduct: $x) isa solutionaxis, has identifier "sol_'+question[3:]+'", has status '+answer+';')
+
+				messages.success(request, 'Saved')
+				return redirect("/explore/addProduct?id="+identifier) # this is a hack to get it to reload - use AJAX in the future
+
+		else:
+			print("else?")
+			if identifier:
+				extra_questions = get_questions(identifier)
+				print("identifier found, extra sent")
+
+				form = addProduct2Form(extra=extra_questions, identifier=identifier, marketid=marketid)
+			else:
+				print("no identifier")
+				form = addProduct2Form(marketid=marketid)
+	
+	
+
+		return render(request, "interface/addCompetitor.html", {'form': form, 'action': action, 'addlink': addlink})	
 
 
+
+
+
+def addcompetitor(request):
+
+	if not request.user.is_authenticated:
+		return redirect('/')
+	else:
+		identifier=None
+		identifier = request.GET.get('id')
+		action = 'addcompetitor'
+		pagetitle='Add Competitor'
+
+		requirementssarray=[]
+		marketid = request.GET.get('marketid')
+
+
+		directAndIndirectReqs = []
+		extra=[]
+		if identifier:
+			print("extra is completed")
+			# get all of the direct requirements via the product id
+			directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (requiremententity: $c, $m); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+
+			#get all indirect requirements
+			directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $b, $y); $b has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+			
+		if request.method == 'POST':	
+
+			form = addCompetitorForm(extra=directAndIndirectReqs, identifier=identifier, marketid=marketid, data=request.POST) 
+
+			print(request.POST)	
+			if form.is_valid():	
+
+
+
+				for (question, answer) in form.extra_fields():
+					print(question)
+					print(answer)
+
+				print("^^^^")	
+				print(form.cleaned_data)
+					
+				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
 				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
 				summary = html.escape(form.cleaned_data['summary'],quote=True)
-
 				companychoice = form.cleaned_data['companychoice']
-				#technologychoice = form.cleaned_data['technologychoice']
 				marketneedchoice = form.cleaned_data['marketneedchoice']
-				#businessmodelchoice = form.cleaned_data['businessmodelchoice']
 
-				#x = datetime.datetime.now()
-				#print(x.strftime("%Y-%m-%d"))
-				#print(strftime(x.strftime("%Y-%m-%d %H:%M")))
-
-				client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+				if identifier: # i.e. we're in edit mode delete previous entity first
+					client.execute('match $x isa product, has name $n, has summary $s, has identifier "'+identifier+'"; delete $n, $s;')
+					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has updated '+str(datetime.datetime.now().date())+';')
+					
+					client.execute('match $r ($x) isa productownership; $x isa product has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $r ($x) isa producstisinmarket; $x isa product has identifier "'+identifier+'"; delete $r;')		
+				else:
+					# don't delete anything and create new identifier
+					identifier = str(uuid.uuid4())
+					client.execute('insert $x isa product, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
 
 				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
-				
-				#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+businessmodelchoice+'"; insert (modelused: $y, usesmodel: $x) isa productbusinessmodel;')
-
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa product, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
-
 				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+				messages.success(request, 'Saved')
 
+		else: #method get
+			form = addCompetitorForm(extra=extra, identifier=identifier, marketid=marketid) 		
 
-				# add date
+			marketid = client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $i; get $i;')
+			sitswithinmarkets = client.execute('match $x isa marketneed, has identifier "' +marketid[0]['i']['value']+'"; (lowermarketneed:$x, $b); $b has identifier $i; get $i;')	
 
-				
-				#for th in technologychoice:	
-				#	client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+th+'"; insert (usedinproduct: $y, usestech: $x) isa technologystack;')
-
-
-				# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
-		else:
-			identifier = request.GET.get('id')
-
-			if identifier:
-				form = 	addCompetitorForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
-
-	
-				# ------------- THE REQUIREMENTS MATCH UP AT THE BOTTOM --------------------
-			
-				marketid = client.execute('match $x isa product, has identifier "' +identifier+'"; (solvedby:$x, $b); $b has identifier $i; get $i;')
-				sitswithinmarkets = client.execute('match $x isa marketneed, has identifier "' +marketid[0]['i']['value']+'"; (lowermarketneed:$x, $b); $b has identifier $i; get $i;')	
-
-				print("market ids:", marketid[0]['i']['value'])
-				print("sits in market ids:", sitswithinmarkets[0]['i']['value'])
-
-				allmarkets=[]
+			allmarkets=[]
+			if marketid:
 				allmarkets.append(marketid[0]['i']['value'])
 
+			if sitswithinmarkets:	
 				for s in range(0,len(sitswithinmarkets)):
 					allmarkets.append(sitswithinmarkets[s]['i']['value'])	
 
-				
-				print("all:", allmarkets)
-
-				allrequirements=[]
-				if allmarkets:
-					for market in allmarkets:
-						requirements=client.execute('match $x isa marketneed, has identifier "'+market+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i, has category $c, has importance $p; get $n, $i, $c, $p;')
-						allrequirements.append(requirements)
-						
-
-
-				#	if sitswithinmarkets:
-				#		for i in range(0,len(sitswithinmarkets)):
-				#			req2 = client.execute('match $x isa marketneed, has identifier "'+sitswithinmarkets[i]['i']['value']+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
-#
-#						for req in req2:
-#							requirementssarray.append({'name':req['n']['value'],'id':req['i']['value']})	
 		
+			allrequirements=[]
+			if allmarkets:
+				for market in allmarkets:
+					requirements=client.execute('match $x isa marketneed, has identifier "'+market+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i, has category $c, has importance $p; get $n, $i, $c, $p;')
+					allrequirements.append(requirements)
+					
+
+
+			#	if sitswithinmarkets:
+			#		for i in range(0,len(sitswithinmarkets)):
+			#			req2 = client.execute('match $x isa marketneed, has identifier "'+sitswithinmarkets[i]['i']['value']+'"; (requiremententity:$b, $x); $b has name $n, has identifier $i; get $n, $i;')
+
+			#		for req in req2:
+			#			requirementssarray.append({'name':req['n']['value'],'id':req['i']['value']})	
+	
+
+
+
+			requirementssarray = []	
+			if directAndIndirectReqs:
+
+				for req in directAndIndirectReqs: # something wacky with append above requires this zero
+					# find if the requirement has any solutions associated specifically for this product (built the relationship but couldn't get to work in one command so using product id as a key, could be better)
+					sol = client.execute('match $x isa requirement, has identifier "'+req['iden']['value']+'"; (solution:$b, $x); $b has name $n, has productid "'+identifier+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
+					
+					if sol:
+
+						sol=sol[0]
+
+						highlight="light"
+						if int(sol['s']['value'])<2:
+							highlight="danger"
+						else:
+							highlight="success"	
+
+
+						requirementssarray.append({'name':req['n']['value'],'requirementid':req['iden']['value'],'category':req['cat']['value'], 'importance':req['p']['value'],
+						'solutionname': sol['n']['value'],'solutionid': sol['i']['value'], 'status': sol['s']['value'], 'confidence': sol['co']['value'], 'productid':identifier, 'marketid':marketid, 'highlight':highlight})		
+					else:
+						requirementssarray.append({'name':req['n']['value'],'requirementid':req['iden']['value'],'category':req['cat']['value'], 'importance':req['p']['value'],
+						'solutionname': 'Add new','solutionid': "", 'status': 'None', 'confidence': 'None','productid':identifier, 'marketid':marketid, 'highlight':"danger"})		
+									
+
+			pagetitle='Edit Product'		
+	
+
+
+	return render(request, 'interface/addCompetitor.html', {'form': form, 'action': action, 'pagetitle': pagetitle, 'requirements': requirementssarray, 'marketid': marketid})	
 
 
 
 
-				requirementssarray=[]
-				if allrequirements:
-
-					for s in range(0,len(allrequirements)): # bit of a mess, ends up as nested list above, probably better way of doing this!
-
-						for req in allrequirements[s]: # something wacky with append above requires this zero
-							# find if the requirement has any solutions associated specifically for this product (built the relationship but couldn't get to work in one command so using product id as a key, could be better)
-							sol = client.execute('match $x isa requirement, has identifier "'+req['i']['value']+'"; (solution:$b, $x); $b has name $n, has productid "'+identifier+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
-							
-							if sol:
-
-								sol=sol[0]
-
-								highlight="light"
-								if int(sol['s']['value'])<2:
-									highlight="danger"
-								else:
-									highlight="success"	
-		
-
-								requirementssarray.append({'name':req['n']['value'],'requirementid':req['i']['value'],'category':req['c']['value'], 'importance':req['p']['value'],
-								'solutionname': sol['n']['value'],'solutionid': sol['i']['value'], 'status': sol['s']['value'], 'confidence': sol['co']['value'], 'productid':identifier, 'marketid':marketid, 'highlight':highlight})		
-							else:
-								requirementssarray.append({'name':req['n']['value'],'requirementid':req['i']['value'],'category':req['c']['value'], 'importance':req['p']['value'],
-								'solutionname': 'Add new','solutionid': "", 'status': 'None', 'confidence': 'None','productid':identifier, 'marketid':marketid, 'highlight':"danger"})		
-											
-
-				pagetitle='Edit Solutuion'		
-		
-
-
-			else:
-				#marketid = request.GET.get('marketid')
-				if marketid:
-					form = 	addCompetitorForm(marketid=marketid) # i.e. we've just asked for a fresh form
-					print(form.mystryvalue)
-				else:
-					form = addCompetitorForm()
-					print(form.mystryvalue)
-
-
-
-		return render(request, 'interface/addCompetitor.html', {'form': form, 'action': action, 'pagetitle': pagetitle, 'requirements': requirementssarray, 'marketid': marketid})	
 			
 
 
@@ -461,35 +552,40 @@ def addcompany(request):
 	else:
 		action = 'addcompany'
 		pagetitle='Add Company'
+		identifier=None
+		identifier = request.GET.get('id')
+
 
 		if request.method == 'POST':
 			form = addCompanyForm(data=request.POST) 
 			if form.is_valid():	
-				messages.success(request, 'Saved')
+				
 				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
-				print("identifier:",identifier)
 
-				if identifier: # i.e. we're in edit mode delete previous entity first
-					client.execute('match $x isa company, has name $n, has summary $s, has fundingstage $f, has identifier "'+identifier+'"; delete $n, $s, $f;')
-					# Delete specific relationships
-					client.execute('match $r ($x) isa productownership; $x isa company has identifier "'+identifier+'"; delete $r;')		
-
-				else:
-					# don't delete anything and create new identifier
-					identifier = str(uuid.uuid4())
-
-
-				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
-				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+				name = form.cleaned_data['name']
+				summary = form.cleaned_data['summary']
 				summary = html.escape(form.cleaned_data['summary'],quote=True)
 
 				productownership = form.cleaned_data['productownership']
 				marketneedchoice = form.cleaned_data['marketneedchoice']
 				fundingstage = form.cleaned_data['fundingstage']
 
-				
-				client.execute('insert $x isa company, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has fundingstage "'+fundingstage+'" has updated '+str(datetime.datetime.now().date())+';')
 
+				if identifier: # i.e. we're in edit mode delete previous entity first
+					client.execute('match $x isa company, has identifier "'+identifier+'", has name $n, has summary $s, has fundingstage $f; delete $n, $s, $f;')
+					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has fundingstage "'+fundingstage+'", has updated '+str(datetime.datetime.now().date())+';')
+
+					# Delete specific relationships
+					client.execute('match $r ($x) isa custom; $x isa company has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $r ($x) isa productownership; $x isa company has identifier "'+identifier+'"; delete $r;')		
+
+				else:
+					# don't delete anything and create new identifier
+					identifier = str(uuid.uuid4())
+					client.execute('insert $x isa company, has name "'+name+'", has summary "'+summary+'", has fundingstage "'+fundingstage+'", has identifier "'+identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+
+
+				
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa company, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
 
@@ -499,10 +595,10 @@ def addcompany(request):
 				for po in productownership:	
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+po+'"; insert (productowner: $x, companyproduct: $y) isa productownership;')
 
+				messages.success(request, 'Saved')	
 
 			# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
 		else:
-			identifier = request.GET.get('id')
 			if identifier:
 				form = 	addCompanyForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
 			else:
@@ -510,7 +606,7 @@ def addcompany(request):
 				if marketid:
 					form = 	addCompanyForm(marketid=marketid) # i.e. we've just asked for a fresh form
 				else:
-					form = addCompanyForm()	
+					form = addCompanyForm(identifier=identifier)	
 
 		return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle})	
 
@@ -527,23 +623,14 @@ def addrequirement(request):
 	else:
 		action = 'addrequirement'
 		pagetitle='Add Requirement'
+		indentifier=None
+		identifier = request.GET.get('id')
+
 
 		if request.method == 'POST':
 			form = addRequirementForm(data=request.POST) 
 			if form.is_valid():	
-				messages.success(request, 'Saved')
-				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
-
-				if identifier: # i.e. we're in edit mode delete previous entity first
-					client.execute('match $x isa requirement, has name $n, has summary $s, has confidence $c, has importance $st, has category $ca, has identifier "'+identifier+'"; delete $n, $s, $c, $st, $ca;')
-					# Delete specific relationships
-					#client.execute('match $r ($x) isa requirementconnection; $x isa requirement has identifier "'+identifier+'"; delete $r;')		
-					# DON'T KNOW WHY SHOULDN'T DELETE IN THIS CASE - IF YOU DO IT DELETES ANOTHER RELATIONSHIP???!	
-				else:
-					# don't delete anything and create new identifier
-					identifier = str(uuid.uuid4())
-
-
+				
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
 				summary = html.escape(form.cleaned_data['summary'],quote=True)
 				importance = form.cleaned_data['importance'].encode('utf-8').decode('latin-1')
@@ -551,26 +638,51 @@ def addrequirement(request):
 				marketchoice = form.cleaned_data['marketchoice'].encode('utf-8').decode('latin-1')
 				category = form.cleaned_data['category'].encode('utf-8').decode('latin-1')
 
-				client.execute('insert $x isa requirement, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'", has importance ' +importance+', has confidence ' +confidence+', has category "' +category+'", has updated '+str(datetime.datetime.now().date())+';')
+				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
-				print("id:",identifier)
-				print("market choice:",marketchoice)
+				if identifier: # i.e. we're in edit mode delete previous entity first
+					#client.execute('match $x isa requirement, has identifier "'+identifier+'"; has name $n, has summary $s, has confidence $c, has importance $st, has category $ca; delete $n, $s;')
+					# DELETE RELATINSHIP TO IMPORTANCE, CONFIDENCE, CATEGORY -  LATEST NOT DELETING FOR NOW, SEE IF IT CREATES A RECORD ****************************
+
+					client.execute('match $x isa requirement, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summary "'+summary+'", has importance '+importance+', has confidence '+confidence+', has category "'+category+'", has updated '+str(datetime.datetime.now().date())+';')
+					print("added new info")
+
+					# Delete specific relationships
+					client.execute('match $r ($x) isa requirementconnection; $x isa requirement has identifier "'+identifier+'"; delete $r;')
+					print("deleted relationships")
+					
+
+					# DON'T KNOW WHY SHOULDN'T DELETE IN THIS CASE - IF YOU DO IT DELETES ANOTHER RELATIONSHIP???!	
+				else:
+					# don't delete anything and create new identifier
+					identifier = str(uuid.uuid4())
+					print("else branch")
+
+					client.execute('insert $x isa requirement, has name "'+name+'", has summary "'+summary+'", has identifier "'+identifier+'", has importance '+importance+', has confidence '+confidence+', has category "'+category+'", has updated '+str(datetime.datetime.now().date())+';')
+					print("added new info on new requirement")
+
 				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (hasrequirement: $y, requiremententity: $x) isa requirementconnection;')
-				
+				print("inserted relationships")	
+
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa requirement, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
+				messages.success(request, 'Saved')
+
+				return redirect("/explore/marketanalysis?id="+marketchoice) # this is a hack to get it to reload - use AJAX in the future
 
 				# quick way of seeing if these are working: match (productowner: $y, companyproduct: $x) isa productownership; offset 0; limit 30; get;
 		else:
-			identifier = request.GET.get('id')
 			if identifier:
 				form = 	addRequirementForm(identifier=identifier) #THIS IS PASSING BACK TO THE FORM, BIT WEIRD
+				print("1")
 			else:
 				marketid = request.GET.get('marketid')
 				if marketid:
-					form = 	addRequirementForm(marketid=marketid) # i.e. we've just asked for a fresh form
+					form = 	addRequirementForm(marketid=marketid, identifier=identifier) # i.e. we've just asked for a fresh form
+					print("2")
 				else:
-					form = 	addRequirementForm()
+					form = 	addRequirementForm(identifier=identifier)
+					print("3")
 		
 
 		# DO THE WORK HERE TO PULL THE RELATIONS EITHER WAY WITH A LINK TO EDIT THEM - PASS BACK IN AS AN ARRAY
@@ -585,7 +697,6 @@ def addrequirement(request):
 
 
 
-
 def addsolution(request):
 	
 	if not request.user.is_authenticated:
@@ -593,6 +704,7 @@ def addsolution(request):
 	else:
 		action = 'addsolution'
 		pagetitle='Add Solution'
+
 
 		if request.method == 'POST':
 			form = addSolutionForm(data=request.POST) 
@@ -604,17 +716,6 @@ def addsolution(request):
 				productid = form.cleaned_data['productid']
 
 
-
-				if identifier: # i.e. we're in edit mode delete previous entity first
-					client.execute('match $x isa solutioncomponent, has name $n, has summary $s, has confidence $c, has status $st, has identifier "'+identifier+'"; delete $n, $s, $c, $st;')
-					# Delete specific relationships
-					client.execute('match $r ($x) isa requirementmatch; $x isa solutioncomponent has identifier "'+identifier+'"; delete $r;')		
-					# DON'T KNOW WHY THIS DELETE STATEMENT IS CAUSING ISSUES
-
-				else:
-					# don't delete anything and create new identifier
-					identifier = str(uuid.uuid4())
-
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
 				summary = html.escape(form.cleaned_data['summary'],quote=True)
 
@@ -623,25 +724,33 @@ def addsolution(request):
 				#category = form.cleaned_data['category'].encode('utf-8').decode('latin-1')
 				requirement = form.cleaned_data['requirement'].encode('utf-8').decode('latin-1')
 
-				if productid:
+
+
+				if identifier: # i.e. we're in edit mode delete previous entity first
+					client.execute('match $x isa solutioncomponent, has identifier "'+identifier+'", has name $n, has summary $s, has confidence $c, has status $st; delete $n, $s, $c, $st;')
+					client.execute('insert $x isa solutioncomponent, has identifier "' +identifier+'"; insert $x has name "'+name+'", has summary "' +summary+'", has productid "'+productid+'", has confidence ' +confidence+', has status ' +state+', has updated '+str(datetime.datetime.now().date())+';')
+
+					client.execute('match $r ($x) isa requirementmatch; $x isa solutioncomponent has identifier "'+identifier+'"; delete $r;')		
+					# DON'T KNOW WHY THIS DELETE STATEMENT IS CAUSING ISSUES
+
+				else:
+					# don't delete anything and create new identifier
+					identifier = str(uuid.uuid4())
 
 					client.execute('insert $x isa solutioncomponent, has name "'+name+'", has summary "' +summary+'", has productid "'+productid+'", has identifier "' +identifier+'", has confidence ' +confidence+', has status ' +state+', has updated '+str(datetime.datetime.now().date())+';')
 
-					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+requirement+'"; insert (requiressolution: $y, solution: $x) isa requirementmatch;')
+				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+requirement+'"; insert (requiressolution: $y, solution: $x) isa requirementmatch;')
 
-					#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+productid+'"; insert (productincludessolution: $y, solution: $x) isa relatedtoproduct;')
+				#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+productid+'"; insert (productincludessolution: $y, solution: $x) isa relatedtoproduct;')
 
-					client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa solutioncomponent, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa solutioncomponent, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
-				else:
-				
-					print("could find product to associate to?")	
 
 		else:
 
-			reqid = ""
-			productid = ""
-			solutionid = ""
+			reqid = None
+			productid = None
+			solutionid = None
 			reqid = request.GET.get('reqid')
 			productid = request.GET.get('productid')
 			solutionid = request.GET.get('solutionid')
@@ -655,31 +764,19 @@ def addsolution(request):
 
 
 
+
 def addmarketneed(request):
 	if not request.user.is_authenticated:
 		return redirect('/')
 	else:
 		action = 'addmarketneed'
 		pagetitle = "Define venture backable problem"
+		identifier=None
+		identifier = request.GET.get('id')
 		if request.method == 'POST':
 			form = addMarketNeedForm(data=request.POST) 
 			if form.is_valid():
 				messages.success(request, 'Saved')
-
-				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
-
-				if identifier: # i.e. we're in edit mode delete previous entity first
-					print("Warning - delete before rewrite (edit mode")
-
-					# NEED TO DELETE SPECIFIC ATTRIBUTES AND RELATIONSHIPS NOT EVERYTHING ON EDIT!
-					# Delete specific attributes
-
-					client.execute('match $x isa marketneed, has name $n, has summary $s, has marketsize $m, has CAGR $c, has identifier "'+identifier+'"; delete $n, $s, $m, $c;')
-					# Delete specific relationships
-					client.execute('match $r ($x) isa marketneediswithinmarketneed; $x isa marketneed has identifier "'+identifier+'"; delete $r;')	
-				else:
-					# don't delete anything and create new identifier
-					identifier = str(uuid.uuid4())
 
 
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
@@ -690,21 +787,34 @@ def addmarketneed(request):
 				sitswithinmarketchoice = form.cleaned_data['sitswithinmarketchoice']
 
 				
-				client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+
+				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+				if identifier: # i.e. we're in edit mode delete previous entity first
+
+					client.execute('match $x isa marketneed, has identifier "'+identifier+'", has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s, $m, $c;')
+					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+					# Delete specific relationships
+					client.execute('match $r ($x) isa marketneediswithinmarketneed; $x isa marketneed has identifier "'+identifier+'"; delete $r;')	
+				else:
+					# don't delete anything and create new identifier
+					identifier = str(uuid.uuid4())
+					client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+				
+
 				#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (topmarket: $y, submarket: $x) isa withinmarket;')
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa marketneed, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
 				for ch in sitswithinmarketchoice:
 					#print("choice:",ch)
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+ch+'"; insert (topmarketneed: $y, lowermarketneed: $x) isa marketneediswithinmarketneed;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+	
+
 				# relate to a market
 
 		else:
-			identifier = request.GET.get('id')
-			if identifier:
-				form = 	addMarketNeedForm(identifier=identifier) #so that the form can load the existing data
-			else:
-				form = 	addMarketNeedForm() # i.e. we've just asked for a fresh form
+			
+			form = 	addMarketNeedForm(identifier=identifier) # identifier goes back with blank form so that can make subsequent edits
 			
 			
 		guidance = "What is the size of this opportunity? How many people or companies are *directly* affected? What is the cost of that suffering per person or company? What is the rate of growth of those costs or the wider issue? What budget to customers have to solve this specific problem? Are they looking to urgently solve it at the moment? Could this really be venture scale (£100m+ sales per year)?"		
@@ -715,24 +825,69 @@ def addmarketneed(request):
 
 
 
-#def alltechnologies(request):
-#	if not request.user.is_authenticated:
-#		return redirect('/')
-#	else:
-##		graknData=client.execute('match $x isa technology, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
-#		
-#		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
-#		allentities=[]
-#		for x in graknData:
-#			singleentity={'name':x['y']['value'],'id':x['z']['value']}
-#			allentities.append(singleentity)
-#
-##		context = {'graknData': allentities,'title': 'All Technolgies','link': 'addtechnology'}
-#		return render(request, 'interface/viewall.html', context)
-#		# database access here		
+def alltechnologies(request):
+	if not request.user.is_authenticated:
+		return redirect('/')
+	else:
+		graknData=client.execute('match $x isa technology, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
+		
+		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
+		allentities=[]
+		for x in graknData:
+			singleentity={'name':x['y']['value'],'id':x['z']['value']}
+			allentities.append(singleentity)
+
+		context = {'graknData': allentities,'title': 'All Technolgies','link': 'addtechnology', 'addlink': 'addtechnology'}
+		return render(request, 'interface/viewall.html', context)
+		# database access here		
 #
 
 ################################################# END OF VIEW ONLYs ###################################################
+
+
+def addtechnology(request):
+	if not request.user.is_authenticated:
+		return redirect('/')
+	else:
+		action = 'addtechnology'
+		if request.method == 'POST':
+			form = addTechnologyForm(data=request.POST) 
+			if form.is_valid():
+				
+
+				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
+
+				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
+				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
+				technologychoice = form.cleaned_data['technologychoice']
+
+				if identifier: # i.e. we're in edit mode delete previous entity first
+					
+					client.execute('match $x isa technology, has name $n, summary $s; delete $n, $s;')
+					client.execute('match $x isa technology, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summar "'+summary+'", has updated '+str(datetime.datetime.now().date())+';')
+					
+					client.execute('match $r ($x) isa technologygroup; $x isa technology has identifier "'+identifier+'"; delete $r;')	
+
+				else:	
+
+					identifier = str(uuid.uuid4())
+					client.execute('insert $x isa technology, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
+				
+				if technologychoice is not "N/A":
+					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (subtechnology: $y, toptechnology: $x) isa technologygroup;')
+					client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa technology, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+
+
+				messages.success(request, 'Saved')	
+		else:
+			identifier = request.GET.get('id')
+			if identifier:
+				form = 	addTechnologyForm(identifier=identifier) #so that the form can load the existing data
+			else:
+				form = 	addTechnologyForm() # i.e. we've just asked for a fresh form
+			
+			
+		return render(request, 'interface/addentity.html', {'form': form, 'action': action})
 
 
 
@@ -1034,46 +1189,6 @@ def addmarketneed(request):
 
 
 # technology
-
-#def addtechnology(request):
-#	if not request.user.is_authenticated:
-#		return redirect('/')
-#	else:
-#		action = 'addtechnology'
-##		if request.method == 'POST':
-#			form = addTechnologyForm(data=request.POST) 
-#			if form.is_valid():
-#				messages.success(request, 'Saved')
-#
-##				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
-#
-#
-#				if identifier: # i.e. we're in edit mode delete previous entity first
-#					client.execute('match $r ($x) has identifier"'+identifier+'"; delete $r;') # I think you need to delete all the relationships first
-##					client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
-#					print("Warning - delete before rewrite (edit mode")
-#
-#
-#				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
-##				summary = form.cleaned_data['summary'].encode('utf-8').decode('latin-1')
-#				technologychoice = form.cleaned_data['technologychoice']
-#
-#				identifier = str(uuid.uuid4())
-#				client.execute('insert $x isa technology, has name "' +name+'", has summary "' +summary+'", has identifier "' +identifier+'";')
-##				if technologychoice is not "N/A":
-#					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (subtechnology: $y, toptechnology: $x) isa technologygroup;')
-#					client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa technology, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
-#
-#		else:
-##			identifier = request.GET.get('id')
-#			if identifier:
-#				form = 	addTechnologyForm(identifier=identifier) #so that the form can load the existing data
-##			else:
-#				form = 	addTechnologyForm() # i.e. we've just asked for a fresh form
-#			
-#			
-#		return render(request, 'interface/addentity.html', {'form': form, 'action': action})
-
 
 
 # DELETE SPECIFIC ENTITY - SHOULD USE THIS FOR ALL DELETING 
