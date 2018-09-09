@@ -107,7 +107,7 @@ def allproducts(request):
 	if not request.user.is_authenticated:
 		return redirect('/')
 	else:
-		graknData=client.execute('match $x isa product, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
+		graknData=client.execute('match $x isa product, has name $y, has identifier $z; order by $y asc; get $y, $z;') # dictionaries are nested structures
 		
 		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
 		projects=[]
@@ -124,7 +124,7 @@ def allcompanies(request):
 	if not request.user.is_authenticated:
 		return redirect('/')
 	else:
-		graknData=client.execute('match $x isa company, has name $y, has identifier $z; get $y,$z;') # dictionaries are nested structures
+		graknData=client.execute('match $x isa company, has name $y, has identifier $z; order by $y asc; get $y,$z;') # dictionaries are nested structures
 		
 		# itterate thought results and put into dict -don't know why cna't access dict in the teplate when can on the command line
 		projects=[]
@@ -370,6 +370,7 @@ def addProduct(request):
 
 					client.execute('match $r ($x) isa solutionaxis; $x isa product, has identifier "'+identifier+'"; delete $r;')
 					client.execute('match $r ($x) isa technologystack; $x isa product, has identifier "'+identifier+'"; delete $r;')
+					client.execute('match $r ($x) isa solutionaxis; $x isa product, has identifier "'+identifier+'"; delete $r;')
 					#solutionaxis connects the product and requirement, data is storated on the relationship
 
 
