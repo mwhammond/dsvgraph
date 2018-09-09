@@ -122,9 +122,38 @@ class addProduct2Form(forms.Form):
 			marketid = kwargs.pop("marketid")
 		else:
 			marketid=""
-
+		
 
 		super(addProduct2Form, self).__init__(*args, **kwargs)
+
+
+
+
+		# works out which set of options matches the requirement type
+		def options(x):
+
+			marketStatus=[(-1,"Key reason for failure, or current serious issues"),(0,"Unknown"),(0.5,"No market identified"),(1.5,"Single small market -100s millions. Low growth"),(2,"Single small market - 100s millions. High growth"),(2.5,"Single mid-sized market low billons. Low growth"),(3,"Single mid-sized market - low billons. High growth"),(3.5,"Multiple mid-sized growing markets"),(4,"Single huge market - multi billions, low growth"),(4.5,"Single huge market -multi billions. High growth"),(5,"Multiple large markets. Not growing")]
+			defenseStatus=[(-1,"Key reason for failure, or current serious issues"),(0,"Unknown"),(0.5,"No defensibility"),(1.5,"Weak IP strategy"),(5.5,"Strong IP strategy")]
+			manuStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"Likely impossible"),(1,"Unsolved, theoretically possible in >5 years"),(1.5,"Unsolved, theoretically possible in >2 years"),(2,"Theoretically feasible in <2 years"),(2.5,"Lab scale proven"),	(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale or not relavent")]
+			scaleStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"Expensive to produce, large upfront investment, small margin, limit on production"),(1,"Expensive distribution and low margin"),(1.5,""),(2,"Cheap to produce, large upfront investment, no limit on production, large margin"),(3,"Cheap to produce, small upfront investment or distribution costs that needs to be covered, large margin"),(4,"Cheap to produce, small upfront investment or ongoing distribution - that will be covered by others, large margin"),(4.5,"Cost decoupled from unit price"),	(5.5,"Near zero production cost, viral economics")]
+			techStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"Highly sceptical of feasability"),(1,"Clever technical narrative with multiple back up plans"),(1.5,"Theoretically feasible in >5 years"),(2,"Theoretically feasible in >2 years"),(2.5,"Theoretically feasible in <2 years"),	(3,"Lab scale proven"),(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale")]
+			tracStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"In extended tech dev phase, no customers"),(1,"Evidence of strong pull from customers, clear beachhead"),	(1.5,"Proven urgent need exist with LOIs"),(2,"First PoC commercial deals signed"),(3,"Major deal signed"),(4,"Multiple major deals signed")]
+			teamStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"Inexperienced, poor fit or any version of slow moving"),(1,"Inexperienced but fast, good fit"),(2,"Inexperienced, good fit, with experienced advisors"),(2.5,"Experienced but without great record"),(3.5,"Experienced proven team"),(5.5,"Serial entrepreneurs or other big names")]
+			fundingStatus=[(-1,"Key reason for failure or current major issue"),(0,"Unknown"),(0.5,"No upstream investor pull or grants only"),(1,"Strong upstream investor interest"),(1.5,"Seed closed"),(2,"Seed HQ investors"),(2.5,"Series A closed"),(3,"Series A HQ investors"),(3.5,"Growth"),(4,"Growth HQ investors"),(4.5,"Minor exit (10s millions)"),(5,"Mid sized exit (100s millions)"),(5.5,"Major exit (billions)")]
+			defaultOptions=[(-1, 'Key reason for failure'),(0, 'Unknown'),(2, 'Theoretically possible'),(4, 'Proven'),(5, 'Outlier performance')]
+
+			return {
+			"Market size and growth potential": marketStatus,
+			"Defensibility": defenseStatus,
+			"Manufacturability": manuStatus,
+			"Scalability and value capture": scaleStatus,
+			"Technical plan feasability": techStatus,
+			"Traction": tracStatus,
+			"Team fit": teamStatus,
+			"Funding viability": fundingStatus
+			}.get(x, defaultOptions)    # 9 is default if x not found
+
+
 
 		states = [(5, 'Outlier performance'), (4, 'Proven'), (3, 'Theoretically possible'), (2, 'Potentially possible in <2 years'), (1, 'Potentially possible in 2+ years'), (-1, 'Highly skeptical based on evidence'), (0, 'Unknown'), (-2, 'Not working'), (-3, 'Key reason for failure')]	
 		#companystates = [(5, 'Outlier performance'), (4, 'Proven'), (3, 'Theoretically possible'), (2, 'Potentially possible in <2 years'), (1, 'Potentially possible in 2+ years'), (-1, 'Highly skeptical based on evidence'), (0, 'Unknown'), (-2, 'Not working'), (-3, 'Key reason for failure')]	
@@ -179,14 +208,14 @@ class addProduct2Form(forms.Form):
 
 			for req in extra:
 
-				solstatus=client.execute('match $pr has identifier "'+req['iden']['value']+'"; $rp has identifier "'+identifier+'"; (productrequirement: $pr, requirementproduct: $rp) has status $solstatus; get;')
+				solstatus=client.execute('match $pr has identifier "'+req['iden']['value']+'"; $rp has identifier "'+identifier+'"; (productrequirement: $pr, requirementproduct: $rp) has statusfloat $solstatus; get;')
 				if solstatus:
 					savedvalue=solstatus[0]['solstatus']['value']
 				else:
 					savedvalue = 0
 
 				# get the vale on the relationship to the current product, or 0 if none
-				self.fields['id_'+req['iden']['value']] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label=req['n']['value'], choices=states,initial=savedvalue)
+				self.fields['id_'+req['iden']['value']] = forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}), label=req['n']['value'], choices=options(req['cat']['value']),initial=savedvalue)
 
 	def extra_answers(self):
 		print("extra answers checking in")
@@ -615,10 +644,9 @@ class addMarketNeedForm(forms.Form):
 class addRequirementForm(forms.Form):
 
 
+	categories=[("Market size and growth potential","Market size and growth potential"),("Defensibility", "Defensibility"),("Manufacturability","Manufacturability"),("Scalability and value capture","Scalability and value capture"),("Technical plan feasability","Technical plan feasability"),("Traction","Traction"),("Team fit","Team fit"),("Funding viability","Funding viability")]
 
-	categories=[('Breakthrough Advantage','Breakthrough Advantage'), ('Defensibility', 'Defensibility'), ('Scalability', 'Scalability'), ('Critical performance threshold viability - PoC', 'Critical performance threshold viability - PoC'), ('Critical performance threshold viability - Partnership','Critical performance threshold viability - Partnership'), ('Critical performance threshold viability - Scale', 'Critical performance threshold viability - Scale'), ('Traction','Traction'),('Team fit','Team fit'),('Funding viability - PoC', 'Funding viability - PoC'),('Funding viability - Seed', 'Funding viability - Seed'), ('Funding viability - Scale', 'Funding viability - Scale')]
-
-	pagetitle="Define Venture Backable problem"
+	pagetitle="Define the impacting factor"
 
 	name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Requirement name'}), label='Project name')
 	summary = forms.CharField(widget=SummernoteWidget(), label='Description')
@@ -674,7 +702,7 @@ class addRequirementForm(forms.Form):
 			if categorySelection:
 				categorySelection = categorySelection[0]['y']['value']	
 
-			categories=[('Breakthrough Advantage','Breakthrough Advantage'), ('Defensibility', 'Defensibility'), ('Scalability', 'Scalability'), ('Critical performance threshold viability - PoC', 'Critical performance threshold viability - PoC'), ('Critical performance threshold viability - Partnership','Critical performance threshold viability - Partnership'), ('Critical performance threshold viability - Scale', 'Critical performance threshold viability - Scale'), ('Traction','Traction'),('Team fit','Team fit'),('Funding viability - PoC', 'Funding viability - PoC'),('Funding viability - Seed', 'Funding viability - Seed'), ('Funding viability - Scale', 'Funding viability - Scale')]
+			categories=[("Market size and growth potential","Market size and growth potential"),("Defensibility", "Defensibility"),("Manufacturability","Manufacturability"),("Scalability and value capture","Scalability and value capture"),("Technical plan feasability","Technical plan feasability"),("Traction","Traction"),("Team fit","Team fit"),("Funding viability","Funding viability")]
 	
 
 			self.fields['mode'] = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput(),initial=identifier)

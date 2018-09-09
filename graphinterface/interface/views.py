@@ -317,14 +317,14 @@ def get_questions(identifier):
 		# get all of the direct requirements via the product id
 		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (requiremententity: $c, $m); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
 		#get all indirect requirements
-		print("direct length:",len(directAndIndirectReqs))
+		#print("direct length:",len(directAndIndirectReqs))
 		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $b, $y); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
 		#  (productrequirement: $c, requirementproduct: $i) isa solutionaxis, has status $solstatus;
 
-
-
-		print("plus indirect length:",len(directAndIndirectReqs))
-
+		# reqStatusArray = []
+		# for req in the directAndIndirectReqs
+		# 	solstatus=client.execute('(productrequirement: '+req[0]['c']+', requirementproduct: '+req[0]['i']+') isa solutionaxis, has status $solstatus')
+		#	reqStatusArray.extend(solstatus[0]['solstatus'][value])
 
 	return directAndIndirectReqs
 
@@ -388,7 +388,7 @@ def addProduct(request):
 	
 
 				for (question, answer) in form.extra_answers():
-					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+question[3:]+'"; insert (productrequirement: $y, requirementproduct: $x) isa solutionaxis, has identifier "sol_'+question[3:]+'", has status '+answer+';')
+					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+question[3:]+'"; insert (productrequirement: $y, requirementproduct: $x) isa solutionaxis, has identifier "sol_'+question[3:]+'", has statusfloat '+answer+';')
 
 				messages.success(request, 'Saved')
 				return redirect("/explore/addProduct?id="+identifier) # this is a hack to get it to reload - use AJAX in the future
