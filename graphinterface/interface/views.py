@@ -641,7 +641,7 @@ def addrequirement(request):
 				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
-					#client.execute('match $x isa requirement, has identifier "'+identifier+'"; has name $n, has summary $s, has confidence $c, has importance $st, has category $ca; delete $n, $s;')
+					client.execute('match $x isa requirement, has identifier "'+identifier+'", has name $n, has summary $s, has confidence $c, has importance $st, has category $ca; delete $n, $s, $c, $ca, $st;')
 					# DELETE RELATINSHIP TO IMPORTANCE, CONFIDENCE, CATEGORY -  LATEST NOT DELETING FOR NOW, SEE IF IT CREATES A RECORD ****************************
 
 					client.execute('match $x isa requirement, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summary "'+summary+'", has importance '+importance+', has confidence '+confidence+', has category "'+category+'", has updated '+str(datetime.datetime.now().date())+';')
