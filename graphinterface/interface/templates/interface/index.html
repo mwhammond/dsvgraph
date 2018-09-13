@@ -54,7 +54,7 @@
                                 </div>
                                 <div class="media-body media-text-right">
                                     <h2>{{requirementcount}}</h2>
-                                    <p class="m-b-0">Identified risks</p>
+                                    <p class="m-b-0">Impacting factors</p>
                                 </div>
                             </div>
                         </div>
@@ -79,7 +79,7 @@
   <div class="row">
 
 
-
+<!--
                     <div class="col-lg-6">
                         <div class="card">
                             <div class="card-title">
@@ -120,8 +120,8 @@
                         </div>
                     </div>
 
-
-
+-->
+<!--
 
 
                    <div class="col-lg-6">
@@ -154,6 +154,13 @@
                                         {% else %}
                                         <p>Nothing found :(</p>
                                         {% endif %}
+
+
+
+                                            <tr>
+                                                <td><a href="/explore/{{vbpslink}}?id={{entity.id}}">  {{entity.name}}</a></td>
+                                                <td class="color-primary"></td>
+                                            </tr>
 
 
                                         </tbody>
@@ -216,7 +223,7 @@
 
 </div>  
 
-
+-->
 
 {% endblock %}
 

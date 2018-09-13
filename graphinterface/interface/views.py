@@ -21,8 +21,28 @@ import grakn
 import uuid
 import datetime
 import json
-import random
 import html
+
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+
+
+import pylab
+
+import random as rand # note after as pylab has it's own random function!
+
+
+import seaborn as sns
+
+import io
+from io import *
+
+import PIL
+from PIL import Image
+
+import numpy as np
+import base64
 
 
 
@@ -35,9 +55,9 @@ client = grakn.Client(uri='http://35.197.194.67:4567', keyspace='dsvgraph')
 # used for finding disctinct colours for graphs
 def colours(n):
   ret = []
-  r = int(random.random() * 256)
-  g = int(random.random() * 256)
-  b = int(random.random() * 256)
+  r = int(rand.random() * 256)
+  g = int(rand.random() * 256)
+  b = int(rand.random() * 256)
   step = 256 / n
   for i in range(n):
     r += step
@@ -49,6 +69,45 @@ def colours(n):
   return (r,g,b)  
 
 
+# THIS IS A SEPARATE FUNCTION BECAUSE MATPLOTLIB TK BACKGROUND BLOCKS SO OTHERWISE REQUIRES MULTIHTREADING - IT'S PART OF MARKETANALYSIS VIEW CALLED FROM THE TEMPLATE AS AN IMAGE LINK
+def graph(request):
+
+	identifier = request.GET.get('id')
+
+	print("identifier recieved: ", identifier)
+	import matplotlib.cbook as cbook
+
+	# Load a numpy record array from yahoo csv data with fields date, open, close,
+	# volume, adj_close from the mpl-data/example directory. The record array
+	# stores the date as an np.datetime64 with a day unit ('D') in the date column.
+	with cbook.get_sample_data('goog.npz') as datafile:
+	    price_data = np.load(datafile)['price_data'].view(np.recarray)
+	price_data = price_data[-250:]  # get the most recent 250 trading days
+
+	delta1 = np.diff(price_data.adj_close) / price_data.adj_close[:-1]
+
+	# Marker size in units of points^2
+	volume = (15 * price_data.volume[:-2] / price_data.volume[0])**2
+	close = 0.003 * price_data.close[:-2] / 0.003 * price_data.open[:-2]
+
+	fig, ax = plt.subplots()
+	ax.scatter(delta1[:-1], delta1[1:], c=close, s=volume, alpha=0.5)
+
+	ax.set_xlabel(r'$\Delta_i$', fontsize=15)
+	ax.set_ylabel(r'$\Delta_{i+1}$', fontsize=15)
+	ax.set_title('Volume and percent change')
+
+	ax.grid(True)
+	fig.tight_layout()
+
+	buffer = io.BytesIO()
+	canvas = pylab.get_current_fig_manager().canvas
+	canvas.draw()
+	graphIMG = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+	graphIMG.save(buffer, "PNG")
+	pylab.close()
+
+	return HttpResponse (buffer.getvalue(), content_type="Image/png")
 
 
 def index(request):
@@ -56,13 +115,14 @@ def index(request):
 		return redirect('/')
 	else:
 
-		graknData=client.execute('match $r isa productownership, (productowner: $y, companyproduct: $c); $y has name "DSV"; $c has name $n, has identifier $i; offset 0; limit 30; get $n, $i;') # dictionaries are nested structures
-		projects=[]
-		for x in graknData:
-			project={'name':x['n']['value'],'id':x['i']['value']}
-			projects.append(project)
+		# GET BY 
+		#graknData=client.execute('match $r isa productownership, (productowner: $y, companyproduct: $c); $y has name "DSV"; $c has name $n, has identifier $i; offset 0; limit 30; get $n, $i;') # dictionaries are nested structures
+		#projects=[]
+		#for x in graknData:
+		#	project={'name':x['n']['value'],'id':x['i']['value']}
+		#	projects.append(project)
 
-
+		# GET BY COUNT OF NUMBER OF CONNECTED RELATIONSHIPS - Most active areas	
 		graknData=client.execute('match $x isa marketneed, has name $y, has identifier $z; order by $y asc; offset 0; limit 3; get $y,$z;') # dictionaries are nested structures
 		vbps=[]
 		for x in graknData:
@@ -221,6 +281,86 @@ def marketanalysis(request):
 			comparisonTableRadar=[]
 
 	
+			# find all companies attatched to a market need, find all their requirements (importance, confidence), find all their solutionaxis (statusfloat)
+
+
+			reqandsol = client.execute('match $marketidentifier has identifier "'+identifier+'"; (solvedby:$m, $marketidentifier); $m has name $productname; (productrequirement: $pr, requirementproduct: $m), has statusfloat $statusfloat; $pr has name $reqname, has importance $reqimp; get $productname, $reqname, $statusfloat, $reqimp;')
+			
+			# put into a Pandas dataframe
+			reandsolflt=[]
+			for i in range(0,len(reqandsol)):
+				flt = ([reqandsol[i]['productname']['value'], reqandsol[i]['reqname']['value'], reqandsol[i]['statusfloat']['value'], reqandsol[i]['reqimp']['value']])
+				reandsolflt.append(flt)
+		
+			reqandsoldf = pd.DataFrame(reandsolflt, columns = ["Product","Requirement","Status","Importance"])
+			#print(reqandsoldf.info())	
+			#print(reqandsoldf.head())
+			#sns.pairplot(reqandsoldf, hue='Status');
+
+			reqandsoldf.set_index(['Product','Requirement'], inplace=True)
+			reqandsoldf.sort_index(inplace=True)
+
+			print("------ Group by --------")
+			#reqandsolByGrouped = reqandsoldf.groupby('Requirement')
+			print(reqandsoldf.head())
+
+			#cm = sns.light_palette("green", as_cmap=True)
+			#s = reqandsoldf.style.background_gradient(cmap=cm)
+
+			reqandsolhtml = reqandsoldf.to_html(classes="table")
+
+			#drivingFactor = {'name': 'company name', 'data': [1,2,3]}
+
+			drivingFactor="[{x: -1,y: 2}, {x: 0,y: 10}, {x: 10,y: 5}]"
+			#plt.scatter(reqandsoldf[''], reqandsoldf)
+			#plt.xlabel('year of release')
+			#plt.ylabel('median rating');
+
+
+
+		#	buffer = io.BytesIO()
+		#	canvas = pylab.get_current_fig_manager().canvas
+		#	canvas.draw()
+		##	graphIMG = PIL.Image.frombytes('RGB', canvas.get_width_height(),canvas.tostring_rgb())
+		#	graphIMG.save(buffer, "PNG")
+		#	content_type="Image/png"
+		#	buffercontent=buffer.getvalue()
+		#	graphic = (buffercontent ,content_type)
+
+		#	x = np.arange(10)
+		#	y = x
+		#	fig = plt.figure()
+		##	plt.plot(x, y)
+#
+#
+#			canvas = fig.canvas
+#			buf, size = canvas.print_to_buffer()
+#			image = Image.frombuffer('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
+##			buffer=io.BytesIO()
+#			image.save(buffer,'PNG')
+#			graphic = buffer.getvalue()
+#			graphic = base64.b64encode(graphic)
+#			buffer.close()
+#
+
+			"""
+			Add the contents of the StringIO or BytesIO object to the response, matching the
+			mime type with the plot format (in this case, PNG) and return >>>
+			"""
+
+
+			# for each company
+			# get it's requirements and matching solutions - in one go, no solutuons doesn't matter
+			# solstatus=client.execute('match $pr has identifier "'+req['iden']['value']+'"; $rp has identifier "'+identifier+'"; (productrequirement: $pr, requirementproduct: $rp) has statusfloat $solstatus; get;')
+			#directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$m, $i); (requiremententity: $c, $m); $c has name $n, has identifier $iden, has importance $p, has category $cat; (productrequirement: $pr, requirementproduct: $c) has statusfloat $solstatus; get;'))
+			
+			# directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $c, $y); $c has name $n, has identifier $iden, has importance $p, has category $cat; (productrequirement: $pr, requirementproduct: $c) has statusfloat $solstatus; get;'))
+			# Add product name to this!
+			# extend them into an array
+
+			#
+
+
 			if requirementssarray:
 
 				print("-------")		
@@ -238,21 +378,21 @@ def marketanalysis(request):
 						#sol = client.execute('match $x isa requirement, has identifier "'+req['id']+'"; (solution:$b, $x); $b has name $n, has productid "'+comp['i']['value']+'", has identifier $i, has status $s, has confidence $co; get $n, $i, $s, $co;')
 						
 
-
-						sol = client.execute('match $x has identifier "'+req['id']+'"; $y has identifier "'+comp['i']['value']+'"; (productrequirement: $x, requirementproduct: $y) isa solutionaxis, has status $s; get;')
-
+			
+						sol = client.execute('match $x has identifier "'+req['id']+'"; $y has identifier "'+comp['i']['value']+'"; (productrequirement: $x, requirementproduct: $y) isa solutionaxis, has statusfloat $s; get;')
+						
 						if sol:
 							sol=sol[0]
 
 							# work out the score fresh like bakers bread
-							score += (rankingdict[int(req['importance'])]*int(sol['s']['value'])) # int to round down
+							score += (rankingdict[float(req['importance'])]*float(sol['s']['value'])) # int to round down
 							# save said score for quick access from other pages
 
-							performanceArray.append({'val':int(sol['s']['value']), 'col':'success'})
-							rArray.append(int(sol['s']['value']))
+							performanceArray.append({'val':float(sol['s']['value']), 'col':'success'})
+							rArray.append(float(sol['s']['value']))
 
 							highlight="light"
-							if int(sol['s']['value'])<2:
+							if float(sol['s']['value'])<2:
 								highlight="danger"
 							else:
 								highlight="success"	
@@ -286,7 +426,7 @@ def marketanalysis(request):
 
 		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customersarray, 'competitors': competitorsarray, 'requirements': requirementssarray, 'comparisonTable': comparisonTable, 'colourTable': colourTable, 'submarketArray': submarketArray, 'superMarketArray': superMarketArray}
 
-		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata, 'radarArrayAll': radarArrayAll, 'reqNameArray': reqNameArray}
+		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata, 'radarArrayAll': radarArrayAll, 'reqNameArray': reqNameArray, 'drivingFactor': drivingFactor, 'reqandsolhtml': reqandsolhtml}
 		
 		return render(request, 'interface/analysis.html', context)
 		# database access here	
@@ -316,16 +456,17 @@ def get_questions(identifier):
 	if identifier != None:
 		# get all of the direct requirements via the product id
 		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (requiremententity: $c, $m); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+	
 		#get all indirect requirements
 		#print("direct length:",len(directAndIndirectReqs))
-		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $b, $y); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
-		#  (productrequirement: $c, requirementproduct: $i) isa solutionaxis, has status $solstatus;
+		directAndIndirectReqs.extend(client.execute('match $i has identifier "'+identifier+'"; (solvedby:$i, $m); (topmarketneed: $y, lowermarketneed: $m); (requiremententity: $c, $y); $c has name $n, has identifier $iden, has importance $p, has category $cat; get;'))
+	
 
+		#  (productrequirement: $c, requirementproduct: $i) isa solutionaxis, has status $solstatus;
 		# reqStatusArray = []
 		# for req in the directAndIndirectReqs
 		# 	solstatus=client.execute('(productrequirement: '+req[0]['c']+', requirementproduct: '+req[0]['i']+') isa solutionaxis, has status $solstatus')
 		#	reqStatusArray.extend(solstatus[0]['solstatus'][value])
-
 	return directAndIndirectReqs
 
 
@@ -370,7 +511,6 @@ def addProduct(request):
 
 					client.execute('match $r ($x) isa solutionaxis; $x isa product, has identifier "'+identifier+'"; delete $r;')
 					client.execute('match $r ($x) isa technologystack; $x isa product, has identifier "'+identifier+'"; delete $r;')
-					client.execute('match $r ($x) isa solutionaxis; $x isa product, has identifier "'+identifier+'"; delete $r;')
 					#solutionaxis connects the product and requirement, data is storated on the relationship
 
 
@@ -382,20 +522,23 @@ def addProduct(request):
 
 				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+companychoice+'"; insert (productowner: $y, companyproduct: $x) isa productownership;')
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa product, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
-				client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketneedchoice+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 				
 				for tech in technologychoice:
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+tech+'"; insert (usestech: $x, usedinproduct: $y) isa technologystack;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
-	
+
+				for mar in marketneedchoice:
+					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+mar+'"; insert (need: $y, solvedby: $x) isa producstisinmarket;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
 				for (question, answer) in form.extra_answers():
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+question[3:]+'"; insert (productrequirement: $y, requirementproduct: $x) isa solutionaxis, has identifier "sol_'+question[3:]+'", has statusfloat '+answer+';')
+					print(".")
+
 
 				messages.success(request, 'Saved')
-				return redirect("/explore/addProduct?id="+identifier) # this is a hack to get it to reload - use AJAX in the future
+				return redirect("/explore/") # this is a hack to get it to reload - use AJAX in the future
 
 		else:
-			print("else?")
+			print("no updating, no editing")
 			if identifier:
 				extra_questions = get_questions(identifier)
 				print("identifier found, extra sent")
@@ -771,13 +914,12 @@ def addmarketneed(request):
 		return redirect('/')
 	else:
 		action = 'addmarketneed'
-		pagetitle = "Define venture backable problem"
+		pagetitle = "Define Opportunity area"
 		identifier=None
 		identifier = request.GET.get('id')
 		if request.method == 'POST':
 			form = addMarketNeedForm(data=request.POST) 
 			if form.is_valid():
-				messages.success(request, 'Saved')
 
 
 				name = form.cleaned_data['name'].encode('utf-8').decode('latin-1')
@@ -793,7 +935,7 @@ def addmarketneed(request):
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
 
-					client.execute('match $x isa marketneed, has identifier "'+identifier+'", has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s, $m, $c;')
+					client.execute('match $x isa marketneed, has identifier "'+identifier+'", has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s')
 					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
 					# Delete specific relationships
 					client.execute('match $r ($x) isa marketneediswithinmarketneed; $x isa marketneed has identifier "'+identifier+'"; delete $r;')	
@@ -809,8 +951,10 @@ def addmarketneed(request):
 				for ch in sitswithinmarketchoice:
 					#print("choice:",ch)
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+ch+'"; insert (topmarketneed: $y, lowermarketneed: $x) isa marketneediswithinmarketneed;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
-	
-
+		
+			messages.success(request, 'Saved')
+			return redirect("/explore/allmarketneeds")
+					
 				# relate to a market
 
 		else:
@@ -818,9 +962,9 @@ def addmarketneed(request):
 			form = 	addMarketNeedForm(identifier=identifier) # identifier goes back with blank form so that can make subsequent edits
 			
 			
-		guidance = "What is the size of this opportunity? How many people or companies are *directly* affected? What is the cost of that suffering per person or company? What is the rate of growth of those costs or the wider issue? What budget to customers have to solve this specific problem? Are they looking to urgently solve it at the moment? Could this really be venture scale (£100m+ sales per year)?"		
+			guidance = "What is the size of this opportunity? How many people or companies are *directly* affected? What is the cost of that suffering per person or company? What is the rate of growth of those costs or the wider issue? What budget to customers have to solve this specific problem? Are they looking to urgently solve it at the moment? Could this really be venture scale (£100m+ sales per year)?"		
 
-		return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle, 'guidance': guidance})
+			return render(request, 'interface/addentity.html', {'form': form, 'action': action, 'pagetitle': pagetitle, 'guidance': guidance})
 
 
 
@@ -1204,7 +1348,7 @@ def deleteentity(request):
 			client.execute('match $y has identifier"'+identifier+'"; delete $y;') # then delete the thing, but still leaves the attributes floating - fix later
 
 			# need some error handling!
-		return render(request, 'interface/index.html')
+		return redirect('index')
 			
 
 # people

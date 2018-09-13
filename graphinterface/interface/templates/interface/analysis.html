@@ -42,8 +42,8 @@
                    <div class="card-body">
                     <div><p>{{marketneeddata.summary}}</p></div>
                     <br>
-                    <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit VBP</a>
-                    <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete VBP</a>
+                    <a href="/explore/{{link}}?id={{marketneeddata.id}}" class="btn btn-primary" role="button">Edit</a>
+                    <a href="/explore/deleteentity?id={{marketneeddata.id}}" class="btn btn-danger confirmation" onclick="if (confirm('Are you sure, this is permenant?')){return true;}else{event.stopPropagation(); event.preventDefault();};" role="button">Delete</a>
               
                   </div>
             </div>
@@ -68,6 +68,7 @@
                             <p>Include incumbent approaches, academia, startups potential new approaches</p>
                             </div>
                             <div class="card-body">
+
 
                                 <div class="table-responsive">
                                     <table class="table">
@@ -135,6 +136,28 @@
 </div>
 
 
+<div class="row">
+
+
+ <!-- Radar Chart -->
+                    <div class="col-lg-12">
+                         <div class="card">
+                            <div class="card-title">
+                                <h4>Driving factors</h4>
+
+                            </div>
+                            <div class="sales-chart">
+                                <img src="graph?id={{marketneeddata.id}}">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+</div>
+
+
+                             
 
 
 
@@ -142,8 +165,8 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-title">
-                                <h4>Key requirements </h4>
-                             <div> <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add requirement</a></div>
+                                <h4>Key Factors</h4>
+                             <div> <a href="/explore/addrequirement?marketid={{marketneeddata.id}}" class="btn btn-primary" role="button">Add Opportunity specific factor</a></div>
    
                             </div>
                             <div class="card-body">
@@ -186,6 +209,27 @@
 
 
 <!-- INCLUDES SUB MARKETS -->
+
+  <div class="row">
+
+  
+
+                      <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-title">
+                                <h4>Full product vs. key factor data</h4>
+                  
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                  {% autoescape off %}{{reqandsolhtml}}{% endautoescape %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+</div>                    
+
 
   <div class="row">
 
@@ -398,8 +442,28 @@ options: {
 });
 </script>
 
+<script>
+var ctx = document.getElementById("drivingFactors").getContext('2d');
 
+var scatterChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Scatter Dataset',
+            data: {{drivingFactor}}
+        }]
+    },
+    options: {
+        scales: {
+            xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+                    }]
+              }
+    }
+});
 
+</script>
 
 
 
