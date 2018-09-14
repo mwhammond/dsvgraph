@@ -906,7 +906,7 @@ def addmarketneed(request):
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
 
-					client.execute('match $x isa marketneed, has identifier "'+identifier+'", has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s')
+					client.execute('match $x isa marketneed, has identifier "'+identifier+'"; $x has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s;')
 					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
 					# Delete specific relationships
 					client.execute('match $r ($x) isa marketneediswithinmarketneed; $x isa marketneed has identifier "'+identifier+'"; delete $r;')	
