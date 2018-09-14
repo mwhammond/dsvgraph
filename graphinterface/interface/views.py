@@ -26,18 +26,16 @@ import html
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
-
-
 import pylab
 
 import random as rand # note after as pylab has it's own random function!
-
 
 import seaborn as sns
 
 import io
 from io import *
 
+# installed as Pillow
 import PIL
 from PIL import Image
 
@@ -75,30 +73,46 @@ def graph(request):
 	identifier = request.GET.get('id')
 
 	print("identifier recieved: ", identifier)
-	import matplotlib.cbook as cbook
+	sns.set()
 
-	# Load a numpy record array from yahoo csv data with fields date, open, close,
-	# volume, adj_close from the mpl-data/example directory. The record array
-	# stores the date as an np.datetime64 with a day unit ('D') in the date column.
-	with cbook.get_sample_data('goog.npz') as datafile:
-	    price_data = np.load(datafile)['price_data'].view(np.recarray)
-	price_data = price_data[-250:]  # get the most recent 250 trading days
+# Load the example iris dataset
+	#planets = sns.load_dataset("planets")
 
-	delta1 = np.diff(price_data.adj_close) / price_data.adj_close[:-1]
+	#cmap = sns.cubehelix_palette(rot=-.2, as_cmap=True)
+	#ax = sns.scatterplot(x="distance", y="orbital_period",
+	#                     hue="year", size="mass",
+	#                     palette=cmap, sizes=(10, 200),
+	#                     data=planets)
+	
+	reqandsol = client.execute('match $marketidentifier has identifier "'+identifier+'"; (solvedby:$m, $marketidentifier); $m has name $productname; (productrequirement: $pr, requirementproduct: $m), has statusfloat $statusfloat; $pr has name $reqname, has importance $reqimp; get $productname, $reqname, $statusfloat, $reqimp;')
+			
+	# put into a Pandas dataframe
+	reandsolflt=[]
+	for i in range(0,len(reqandsol)):
+		flt = ([reqandsol[i]['productname']['value'], reqandsol[i]['reqname']['value'], reqandsol[i]['statusfloat']['value'], reqandsol[i]['reqimp']['value']])
+		reandsolflt.append(flt)
+			
 
-	# Marker size in units of points^2
-	volume = (15 * price_data.volume[:-2] / price_data.volume[0])**2
-	close = 0.003 * price_data.close[:-2] / 0.003 * price_data.open[:-2]
+	reqandsoldf = pd.DataFrame(reandsolflt, columns = ["Product","Requirement","Status","Importance"])
 
-	fig, ax = plt.subplots()
-	ax.scatter(delta1[:-1], delta1[1:], c=close, s=volume, alpha=0.5)
 
-	ax.set_xlabel(r'$\Delta_i$', fontsize=15)
-	ax.set_ylabel(r'$\Delta_{i+1}$', fontsize=15)
-	ax.set_title('Volume and percent change')
+	reqandsoldf[['Status','Importance']] = reqandsoldf[['Status','Importance']].apply(pd.to_numeric)
+	#reqandsoldf.replace(0,np.nan, inplace=True) < LEFT AT TRYING TO CONVERT ZEROS TO NAN
 
-	ax.grid(True)
-	fig.tight_layout()
+	reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status')
+
+	sns.set()
+	#sns.set(style="ticks", color_codes=True)
+	#sns.pairplot(reqandsolpivot)
+
+
+
+	g = sns.pairplot(reqandsolpivot, kind="reg")
+	#g = g.map_diag(plt.hist)
+	#g = g.map_offdiag(plt.scatter)
+	#g = g.map(plt.scatter)
+	
+
 
 	buffer = io.BytesIO()
 	canvas = pylab.get_current_fig_manager().canvas
@@ -293,60 +307,16 @@ def marketanalysis(request):
 				reandsolflt.append(flt)
 		
 			reqandsoldf = pd.DataFrame(reandsolflt, columns = ["Product","Requirement","Status","Importance"])
-			#print(reqandsoldf.info())	
-			#print(reqandsoldf.head())
-			#sns.pairplot(reqandsoldf, hue='Status');
 
-			reqandsoldf.set_index(['Product','Requirement'], inplace=True)
+			reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status').head()
+	
+			reqandsoldf.set_index(['Requirement'], inplace=True)
+
 			reqandsoldf.sort_index(inplace=True)
 
-			print("------ Group by --------")
-			#reqandsolByGrouped = reqandsoldf.groupby('Requirement')
-			print(reqandsoldf.head())
-
-			#cm = sns.light_palette("green", as_cmap=True)
-			#s = reqandsoldf.style.background_gradient(cmap=cm)
-
-			reqandsolhtml = reqandsoldf.to_html(classes="table")
-
-			#drivingFactor = {'name': 'company name', 'data': [1,2,3]}
-
-			drivingFactor="[{x: -1,y: 2}, {x: 0,y: 10}, {x: 10,y: 5}]"
-			#plt.scatter(reqandsoldf[''], reqandsoldf)
-			#plt.xlabel('year of release')
-			#plt.ylabel('median rating');
+			reqandsolhtml = reqandsolpivot.to_html(classes="table")
 
 
-
-		#	buffer = io.BytesIO()
-		#	canvas = pylab.get_current_fig_manager().canvas
-		#	canvas.draw()
-		##	graphIMG = PIL.Image.frombytes('RGB', canvas.get_width_height(),canvas.tostring_rgb())
-		#	graphIMG.save(buffer, "PNG")
-		#	content_type="Image/png"
-		#	buffercontent=buffer.getvalue()
-		#	graphic = (buffercontent ,content_type)
-
-		#	x = np.arange(10)
-		#	y = x
-		#	fig = plt.figure()
-		##	plt.plot(x, y)
-#
-#
-#			canvas = fig.canvas
-#			buf, size = canvas.print_to_buffer()
-#			image = Image.frombuffer('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
-##			buffer=io.BytesIO()
-#			image.save(buffer,'PNG')
-#			graphic = buffer.getvalue()
-#			graphic = base64.b64encode(graphic)
-#			buffer.close()
-#
-
-			"""
-			Add the contents of the StringIO or BytesIO object to the response, matching the
-			mime type with the plot format (in this case, PNG) and return >>>
-			"""
 
 
 			# for each company
@@ -426,7 +396,7 @@ def marketanalysis(request):
 
 		marketneeddata = {'id': identifier, 'name': name, 'summary': summary, 'size': size, 'CAGR': CAGR, 'customers': customersarray, 'competitors': competitorsarray, 'requirements': requirementssarray, 'comparisonTable': comparisonTable, 'colourTable': colourTable, 'submarketArray': submarketArray, 'superMarketArray': superMarketArray}
 
-		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata, 'radarArrayAll': radarArrayAll, 'reqNameArray': reqNameArray, 'drivingFactor': drivingFactor, 'reqandsolhtml': reqandsolhtml}
+		context = {'title': 'Define Venture Backable Problem','link': 'addmarketneed', 'marketneeddata': marketneeddata, 'radarArrayAll': radarArrayAll, 'reqNameArray': reqNameArray, 'reqandsolhtml': reqandsolhtml}
 		
 		return render(request, 'interface/analysis.html', context)
 		# database access here	
