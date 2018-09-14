@@ -25,6 +25,7 @@ import html
 
 import pandas as pd
 import matplotlib
+matplotlib.use('agg') # for google cloud headless environment
 import matplotlib.pyplot as plt
 import pylab
 
