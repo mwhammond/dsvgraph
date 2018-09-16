@@ -43,6 +43,8 @@ from PIL import Image
 import numpy as np
 import base64
 
+from collections import Counter
+
 
 
 #import plotly
@@ -102,13 +104,69 @@ def graph(request):
 
 	reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status')
 
-	sns.set()
+
+	# Simple data to display in various forms
+	x = np.linspace(0, 2 * np.pi, 400)
+	y = np.sin(x ** 2)
+
+	plt.close('all')
+
+
+	marketStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No market identified"),(1.5,"Single small market -100s millions. Low growth"),(2.0,"Single small market - 100s millions. High growth"),(2.5,"Single mid-sized market low billons. Low growth"),(3.0,"Single mid-sized market - low billons. High growth"),(3.5,"Multiple mid-sized growing markets"),(4.0,"Single huge market - multi billions, low growth"),(4.5,"Single huge market -multi billions. High growth"),(5.0,"Multiple large markets. Not growing"),(5.5,"Multiple large markets. High growth")]
+	defenseStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No defensibility"),(1.5,"Weak IP strategy"),(5.5,"Strong IP strategy")]
+	manuStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Likely impossible"),(1,"Unsolved, theoretically possible in >5 years"),(1.5,"Unsolved, theoretically possible in >2 years"),(2.0,"Theoretically feasible in <2 years"),(2.5,"Lab scale proven"),	(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale or not relavent")]
+	scaleStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Expensive to produce, large upfront investment, small margin, limit on production"),(1.0,"Expensive distribution and low margin"),(2.0,"Cheap to produce, large upfront investment, no limit on production, large margin"),(3.0,"Cheap to produce, small upfront investment or distribution costs that needs to be covered, large margin"),(4.0,"Cheap to produce, small upfront investment or ongoing distribution - that will be covered by others, large margin"),(4.5,"Cost decoupled from unit price"),	(5.5,"Near zero production cost, viral economics")]
+	techStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Highly sceptical of feasability"),(1.0,"Clever technical narrative with multiple back up plans"),(1.5,"Theoretically feasible in >5 years"),(2.0,"Theoretically feasible in >2 years"),(2.5,"Theoretically feasible in <2 years"),(3.0,"Lab scale proven"),(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale")]
+	tracStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"In extended tech dev phase, no customers"),(1.0,"Evidence of strong pull from customers, clear beachhead"),(1.5,"Proven urgent need exist with LOIs"),(2.0,"First PoC commercial deals signed"),(3.0,"Major deal signed"),(4.0,"Multiple major deals signed")]
+	teamStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Inexperienced, poor fit or any version of slow moving"),(1.0,"Inexperienced but fast, good fit"),(2.0,"Inexperienced, good fit, with experienced advisors"),(2.5,"Experienced but without great record"),(3.5,"Experienced proven team"),(5.5,"Serial entrepreneurs or other big names")]
+	fundingStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No upstream investor pull or grants only"),(1.0,"Strong upstream investor interest"),(1.5,"Seed closed"),(2.0,"Seed HQ investors"),(2.5,"Series A closed"),(3.0,"Series A HQ investors"),(3.5,"Growth"),(4.0,"Growth HQ investors"),(4.5,"Minor exit (10s millions)"),(5.0,"Mid sized exit (100s millions)"),(5.5,"Major exit (billions)")]
+	clinicalStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(1.0,"Pre-clinical invitro"),(2.0,"Pre-clinical invivo"),(3.0,"Phase 1"),(4.0,"Phase 2"), (5.0,"Phase 3"), (6.0,"Sold / Partnership")]
+	defaultOptions=[(0.0, 'Error - options failed to load')]
+
+
+	marketStatus=["Key reason for failure, or current serious issues", "Unknown","No market identified","Single small market -100s millions. Low growth","Single small market - 100s millions. High growth","Single mid-sized market low billons. Low growth","Single mid-sized market - low billons. High growth","Multiple mid-sized growing markets","Single huge market - multi billions, low growth","Single huge market -multi billions. High growth","Multiple large markets. Not growing","Multiple large markets. High growth"]
+
+
+	print(list(reqandsolpivot)) # gets column names
+
+	# Two subplots, unpack the axes array immediately
+	f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(9, 3))
+	#fig, axes = plt.subplots(nrows=2, ncols=2)
+	#reqandsolpivot.plot(subplots=True, layout=(1,5), sharey=True, figsize=(9, 4))
+
+	#allbutfunding = reqandsolpivot.drop('Funding status', axis=1)
+	#for i in range(0,len(allbutfunding))
+	##	print(reqandsolpivot[])
+
+	# for each column that's not funding create a subplot
+
+	reqandsolpivot.plot(ax=ax1,kind='scatter', x='Breadth potential of platform', y='Funding status', label='Breadth of platform', c='red')
+	
+	reqandsolpivot.plot(ax=ax2,kind='scatter', x='Scalability of technology (Autologous vs. Allogeneic)', y='Funding status', label='Scalability of manufacture', c='blue')
+	ax1.set_xlabel('')
+	ax2.set_xlabel('')
+	#ax1.plot(x, y)
+	ax1.set_title('Breadth vs. Funding')
+
+	ax1.set_yticklabels(fundingStatus, rotation=90)
+ 	#ax1.set_xticklabels(df.C, )
+	ax1.legend().set_visible(False)
+	ax2.legend().set_visible(False)
+	ax2.set_title('Scalability vs. funding')
+
+	
+	#reqandsolpivot.plot(ax=ax3,x=["Breadth potential of platform", "Scalability of technology (Autologous vs. Allogeneic)"], y="Funding status", kind="scatter")
+	#ax2.scatter(x, y)
+	#ax2.set_title('Vs. deals')
+	#ax3.scatter(x, y)
+	#ax3.set_title('Vs. clinical milestones')
+		#sns.set()
 	#sns.set(style="ticks", color_codes=True)
 	#sns.pairplot(reqandsolpivot)
 
 
 
-	g = sns.pairplot(reqandsolpivot, kind="reg")
+		#g = sns.pairplot(reqandsolpivot, kind="reg")
 	#g = g.map_diag(plt.hist)
 	#g = g.map_offdiag(plt.scatter)
 	#g = g.map(plt.scatter)
@@ -130,19 +188,49 @@ def index(request):
 		return redirect('/')
 	else:
 
-		# GET BY 
-		#graknData=client.execute('match $r isa productownership, (productowner: $y, companyproduct: $c); $y has name "DSV"; $c has name $n, has identifier $i; offset 0; limit 30; get $n, $i;') # dictionaries are nested structures
-		#projects=[]
-		#for x in graknData:
-		#	project={'name':x['n']['value'],'id':x['i']['value']}
-		#	projects.append(project)
 
-		# GET BY COUNT OF NUMBER OF CONNECTED RELATIONSHIPS - Most active areas	
-		graknData=client.execute('match $x isa marketneed, has name $y, has identifier $z; order by $y asc; offset 0; limit 3; get $y,$z;') # dictionaries are nested structures
+		# GET MOST ACTIVE PROJECTS ---------------------
+		graknData=client.execute('match $x isa marketneed has name $xn has identifier $xi; (solvedby:$b, $x); $b has name $bn; get $xn, $xi, $bn;')
 		vbps=[]
+		vbpsIDs={}
 		for x in graknData:
-			vbp={'name':x['y']['value'],'id':x['z']['value']}
+			vbp=(x['xn']['value'])
+			vbpsIDs[x['xn']['value']] = x['xi']['value']
 			vbps.append(vbp)
+
+		print(vbps)	
+		c = Counter(vbps).most_common(10)
+
+		popularProjects=[]
+		
+		for item in c:
+
+			entry = {'name':item[0], 'number': item[1], 'identifier':vbpsIDs[item[0]]}
+			popularProjects.append(entry)
+		
+		print("popularProjects:")
+		print(popularProjects)
+
+		
+		# GET MOST ACTIVE USERS -------------------------
+
+
+		graknData=client.execute('match $x isa product has name $n; (createdby:$x, $b); $b has name $bn; get $bn, $n;')
+		names=[]
+		for x in graknData:
+			name=(x['bn']['value'])
+			names.append(name)
+
+		c = Counter(names).most_common(10)	
+
+		namesList=[]		
+		for item in c:
+
+			entry = {'name':item[0], 'number': item[1]}
+			namesList.append(entry)	
+
+		
+			
 
 		#onemonthback = str(datetime.datetime.now().date())	
 
@@ -169,7 +257,7 @@ def index(request):
 	
 
 
-		context = {'projects': projects,'vbps':vbps,'title': 'Index','projectlink': 'addcompetitor', 'vbpslink':'marketanalysis', 'updates': updates, 'marketneedcount':marketneedcount, 'requirementcount': requirementcount, 'solutioncount': solutioncount, 'products': products, 'people': people}
+		context = {'projects': projects, 'namesList':namesList,'popularProjects':popularProjects, 'vbps':vbps,'title': 'Index','projectlink': 'addcompetitor', 'vbpslink':'marketanalysis', 'updates': updates, 'marketneedcount':marketneedcount, 'requirementcount': requirementcount, 'solutioncount': solutioncount, 'products': products, 'people': people}
 
 
 		
@@ -906,8 +994,9 @@ def addmarketneed(request):
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
 
-					client.execute('match $x isa marketneed, has identifier "'+identifier+'"; $x has name $n, has summary $s, has marketsize $m, has CAGR $c; delete $n, $s;')
-					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
+					client.execute('match $x isa marketneed, has identifier "'+identifier+'", has name $n, has summary $s; delete $n, $s;')
+					client.execute('match $x has identifier "'+identifier+'"; insert $x has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has updated '+str(datetime.datetime.now().date())+';')
+					print("saving in marketneed")	
 					# Delete specific relationships
 					client.execute('match $r ($x) isa marketneediswithinmarketneed; $x isa marketneed has identifier "'+identifier+'"; delete $r;')	
 				else:
@@ -916,7 +1005,6 @@ def addmarketneed(request):
 					client.execute('insert $x isa marketneed, has name "' +name+'", has summary "' +summary+'", has marketsize '+marketsize+', has CAGR '+marketcagr+', has identifier "' +identifier+'", has updated '+str(datetime.datetime.now().date())+';')
 				
 
-				#client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+marketchoice+'"; insert (topmarket: $y, submarket: $x) isa withinmarket;')
 				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa marketneed, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
 				for ch in sitswithinmarketchoice:
@@ -979,8 +1067,8 @@ def addtechnology(request):
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
 					
-					client.execute('match $x isa technology, has name $n, summary $s; delete $n, $s;')
-					client.execute('match $x isa technology, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summar "'+summary+'", has updated '+str(datetime.datetime.now().date())+';')
+					client.execute('match $x isa technology, has identifier "'+identifier+'", has name $n, has summary $s; delete $n, $s;')
+					client.execute('match $x isa technology, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summary "'+summary+'", has updated '+str(datetime.datetime.now().date())+';')
 					
 					client.execute('match $r ($x) isa technologygroup; $x isa technology has identifier "'+identifier+'"; delete $r;')	
 

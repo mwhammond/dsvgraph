@@ -825,6 +825,12 @@ class addTechnologyForm(forms.Form):
 
 	pagetitle="Add Technology"
 
+	name = forms.CharField(label="Technology name", max_length=100)	
+	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
+	technologychoice = forms.ChoiceField(label='part of technology group:', choices=getEntries('technology'), required=False)
+	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
+
+
 	def __init__(self,*args,**kwargs):
 
 		identifier=None
@@ -857,11 +863,6 @@ class addTechnologyForm(forms.Form):
 			print('add mode')
 			
 
-
-	name = forms.CharField(label="Technology name", max_length=100)	
-	summary = forms.CharField(widget=forms.Textarea(attrs={'width':"100%", 'cols' : "80", 'rows': "4", }))
-	technologychoice = forms.ChoiceField(label='part of technology group:', choices=getEntries('technology'), required=False)
-	mode = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput())
 
 
 

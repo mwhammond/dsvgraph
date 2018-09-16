@@ -79,13 +79,12 @@
   <div class="row">
 
 
-<!--
                     <div class="col-lg-6">
                         <div class="card">
                             <div class="card-title">
-                                <h4>Top projects </h4>
+                                <h4>Most active Opportunity areas</h4>
                              <div><a href="/explore/allproducts" class="btn btn-primary" role="button">All projects</a>
-                             <a href="/explore/addcompetitor" class="btn btn-primary" role="button">Add project</a></div>
+                             <a href="/explore/addproduct" class="btn btn-primary" role="button">Add project</a></div>
    
                             </div>
                             <div class="card-body">
@@ -94,18 +93,19 @@
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th>Score</th>
+                                                <th>Projects</th>
+
  
                                             </tr>
                                         </thead>
                                         <tbody>
 
-                                        {% if projects %}
-                                         {% for entity in projects %}  
+                                        {% if popularProjects %}
+                                         {% for entity in popularProjects %}  
 
                                             <tr>
-                                                <td><a href="/explore/{{projectlink}}?id={{entity.id}}">  {{entity.name}}</a> </td>
-                                                <td class="color-primary">2500</td>
+                                                <td><a href="/explore/marketanalysis?id={{entity.identifier}}">  {{entity.name}}</a> </td>
+                                                <td class="color-primary">{{entity.number}}</td>
                                             </tr>
 
                                           {% endfor %}
@@ -120,14 +120,14 @@
                         </div>
                     </div>
 
--->
-<!--
+
+
 
 
                    <div class="col-lg-6">
                         <div class="card">
                             <div class="card-title">
-                                <h4>Most active opportunity areas </h4>
+                                <h4>Most knowledgable users</h4>
                              <div><a href="/explore/allmarketneeds" class="btn btn-primary" role="button">All Opportunities</a>
                              <a href="/explore/addmarketneed" class="btn btn-primary" role="button">Add Opportunity</a></div>
    
@@ -138,29 +138,22 @@
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th></th>
+                                                <th>Number of entries</th>
                                             </tr>
                                         </thead>
                                         <tbody>
 
 
-                                        {% if vbps %}
-                                        {% for entity in vbps %}
+                                        {% if namesList %}
+                                        {% for entity in namesList %}
                                             <tr>
-                                                <td><a href="/explore/{{vbpslink}}?id={{entity.id}}">  {{entity.name}}</a></td>
-                                                <td class="color-primary"></td>
+                                                <td>{{entity.name}}</a></td>
+                                                <td class="color-primary">{{entity.number}}</td>
                                             </tr>
                                         {% endfor %}
                                         {% else %}
                                         <p>Nothing found :(</p>
                                         {% endif %}
-
-
-
-                                            <tr>
-                                                <td><a href="/explore/{{vbpslink}}?id={{entity.id}}">  {{entity.name}}</a></td>
-                                                <td class="color-primary"></td>
-                                            </tr>
 
 
                                         </tbody>
@@ -176,7 +169,7 @@
 
 
 
-
+<!--
   <div class="row">
 
                     <div class="col-lg-6">
@@ -220,10 +213,10 @@
 
   </div>  
 
-
+-->
 </div>  
 
--->
+
 
 {% endblock %}
 
