@@ -594,7 +594,8 @@ def addProduct(request):
 
 
 				messages.success(request, 'Saved')
-				return redirect("/explore/") # this is a hack to get it to reload - use AJAX in the future
+				returnstring = "/explore/addcompetitor?id="+identifier
+				return redirect(returnstring) # this is a hack to get it to reload - use AJAX in the future
 
 		else:
 			print("no updating, no editing")
@@ -1079,7 +1080,8 @@ def addtechnology(request):
 				
 				if technologychoice is not "N/A":
 					client.execute('match $x has identifier "'+identifier+'"; $y has identifier "'+technologychoice+'"; insert (subtechnology: $y, toptechnology: $x) isa technologygroup;')
-					client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa technology, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
+				
+				client.execute('match $x isa person, has email "'+request.user.email+'"; $y isa technology, has identifier "'+identifier+'"; insert (createdby: $y, creator: $x) isa owner;') # NOTE THIS RELATIONSHIP IS SPELT INCORRECLTY IN THE GRAPH
 
 
 				messages.success(request, 'Saved')	
