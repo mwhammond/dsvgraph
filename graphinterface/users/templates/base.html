@@ -1,123 +1,130 @@
+
+{% load static %}
+
 <!DOCTYPE html>
+<html lang="en">
+
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../../../favicon.ico">
-
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static "images/favicon.png" %}">
     <title>DSV Graph</title>
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static "css/lib/bootstrap/bootstrap.min.css" %}" rel="stylesheet">
+    <!-- Custom CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
- <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+    <link href="{% static "css/bootstrap-tagsinput.css" %}" rel="stylesheet">
 
 
-<style>
+    <link href="{% static "css/lib/calendar2/semantic.ui.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/lib/calendar2/pignose.calendar.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/lib/owl.carousel.min.css" %}" rel="stylesheet" />
+    <link href="{% static "css/lib/owl.theme.default.min.css" %}" rel="stylesheet" />
+    <link href="{% static "css/helper.css" %}" rel="stylesheet">
+    <link href="{% static "css/style.css" %}" rel="stylesheet">
 
-.no-gutter > [class*='col-'] {
-    padding-right:0;
-    padding-left:0;
-}
-</style>
- 
-  </head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js" integrity="sha256-XF29CBwU1MWLaGEnsELogU6Y6rcc5nCkhhx89nFMIDQ=" crossorigin="anonymous"></script>
 
-  <body>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:** -->
+    <!--[if lt IE 9]>
+    <script src="https:**oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https:**oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
 
-          
-    <div class="container" style="width: 735px; height: 1500px"><div class="container" style=""><div class="m-5"></div></div><div class="container" style=""></div>
+<!--
 
-      <div class="header clearfix">
-        <nav>
-          <ul class="nav nav-pills float-right">
-            <li class="nav-item">
-          <!--    <a class="nav-link active" href="/explore">Home <span class="sr-only">(current)</span></a> -->
-            </li>
-            <li class="nav-item">
-              
-            </li>
-            <li class="nav-item">
-              
-            </li>
-          </ul>
-        </nav>
- <img src="http://deepscienceventures.com/wp-content/uploads/2018/07/Deep-Science-Ventures-square-full-left.png" alt="DSV KG" width="150">
-      </div>
+    <script src=" {% static "js/bootstrap-tagsinput.js" %}" ></script>
+    <script src=" {% static "js/typeahead.bundle.js" %}" ></script>
+-->
 
-      
-<div class="container-fluid">
-  <div class="row">
 
-    <div class="col-md-12">
-      <div class="row no-gutter">
 
-   
 
-        <div class="col-md-6">
+</head>
 
-     <h4>Welcome, please sign in</h4>
+</head>
 
-        </div>
-        <div class="col-md-6">
-        <div>    
+<body class="fix-header fix-sidebar">
+    <!-- Preloader - style you can find in spinners.css -->
+    <div class="preloader">
+        <svg class="circular" viewBox="25 25 50 50">
+      <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" /> </svg>
+    </div>
+    <!-- Main wrapper  -->
+    <div id="main-wrapper">
+  
         {% block content %}
     	{% endblock %}
-		</div>  
+	
 
-
-      </div>
+              <footer class="footer"> DSV Graph. Version 0.1 </a></footer>
+            <!-- End footer -->
+        <!-- End Page wrapper  -->
     </div>
-  </div>
+    <!-- End Wrapper -->
+    <!-- All Jquery -->
 
-      <div><hr class="style4"></div>
-            <br>
-
-</div>
-
-<br>
+    <link href="{% static "css/style.css" %}" rel="stylesheet">
 
 
-  <div class="row">
+    <script src=" {% static "js/lib/jquery/jquery.min.js" %}" ></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src=" {% static "js/lib/bootstrap/js/popper.min.js" %}"></script>
+    <script src=" {% static "js/lib/bootstrap/js/bootstrap.min.js" %}"></script>
+    <!-- slimscrollbar scrollbar JavaScript -->
+    <script src=" {% static "js/jquery.slimscroll.js" %}"></script>
+    <!--Menu sidebar -->
+    <script src=" {% static "js/sidebarmenu.js" %}"></script>
+    <!--stickey kit -->
+    <script src=" {% static "js/lib/sticky-kit-master/dist/sticky-kit.min.js" %}"></script>
+    <!--Custom JavaScript -->
 
 
-    <div class="col-md-12">
-      <div class="row no-gutter">
+   
+     <script src=" {% static "js/lib/morris-chart/raphael-min.js" %}"></script>
+    <script src=" {% static "js/lib/morris-chart/morris.js" %}"></script>
+    <script src=" {% static "js/lib/morris-chart/dashboard1-init.js" %}"></script>
 
 
+  <script src="" {% static "js/lib/calendar-2/moment.latest.min.js" %}"></script>
+    <script src=" {% static "js/lib/calendar-2/semantic.ui.min.js" %}"></script>
+    <script src=" {% static "js/lib/calendar-2/prism.min.js" %}"></script>
+    <script src=" {% static "js/lib/calendar-2/pignose.calendar.min.js" %}"></script>
+    <script src="" {% static "js/lib/calendar-2/pignose.init.js" %}"></script>
 
-        <div class="col-md-6">
+    <script src=" {% static "js/lib/owl-carousel/owl.carousel.min.js" %}"></script>
+    <script src=" {% static "js/lib/owl-carousel/owl.carousel-init.js" %}"></script>
 
-     
+    
 
-        </div>
-        <div class="col-md-6">
+    <script src=" {% static "js/scripts.js" %}"></script>
+    <!-- scripit init-->
 
-          
-            <div></div>
-           <!-- <div><a href="/explore/addproject">Add project</a></div> -->
-            
-            </p>
+    <script src=" {% static "js/custom.min.js" %}"></script>
 
-          
+        <script>
+.bootstrap-tagsinput {
+  width: 100%;
+}
+</script>
 
-        </div>
-      </div>
-    </div>
-  </div> 
-
-
-
+<script>
+$('#id_technology').css('height', '100px');
+$('#id_technologychoice').css('height', '100px');
+</script>
 
 
-
-      <footer class="footer">
- 
-      </footer>
-
-    </div> <!-- /container -->
-     </div> <!-- /container -->
-  
 
 </body>
+
 </html>

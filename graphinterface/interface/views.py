@@ -216,6 +216,10 @@ def index(request):
 
 
 		graknData=client.execute('match $x isa product has name $n; (createdby:$x, $b); $b has name $bn; get $bn, $n;')
+		graknData.extend(client.execute('match $x isa marketneed has name $n; (createdby:$x, $b); $b has name $bn; get $bn, $n;'))
+		graknData.extend(client.execute('match $x isa technology has name $n; (createdby:$x, $b); $b has name $bn; get $bn, $n;'))
+
+
 		names=[]
 		for x in graknData:
 			name=(x['bn']['value'])
@@ -278,7 +282,7 @@ def allproducts(request):
 			project={'name':x['y']['value'],'id':x['z']['value']}
 			projects.append(project)
 
-		context = {'graknData': projects,'title': 'All Projects','link': 'addProduct','addlink':'addProduct'}
+		context = {'graknData': projects,'title': 'All Companies','link': 'addProduct','addlink':'addProduct'}
 		return render(request, 'interface/viewall.html', context)
 		# database access here	
 
