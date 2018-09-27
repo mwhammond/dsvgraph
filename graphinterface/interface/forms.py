@@ -132,7 +132,7 @@ class addProduct2Form(forms.Form):
 		# works out which set of options matches the requirement type
 		def options(x):
 
-			binaryStatus=[(0.0, "Unknown"), (1.0, "Yes"), (-1.0, "No")]
+			binaryStatus=[(0.0, "Unknown"), (5.0, "Yes"), (-1.0, "No")]
 			marketStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No market identified"),(1.5,"Single small market -100s millions. Low growth"),(2.0,"Single small market - 100s millions. High growth"),(2.5,"Single mid-sized market low billons. Low growth"),(3.0,"Single mid-sized market - low billons. High growth"),(3.5,"Multiple mid-sized growing markets"),(4.0,"Single huge market - multi billions, low growth"),(4.5,"Single huge market -multi billions. High growth"),(5.0,"Multiple large markets. Not growing"),(5.5,"Multiple large markets. High growth")]
 			defenseStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No defensibility"),(1.5,"Weak IP strategy"),(5.5,"Strong IP strategy")]
 			manuStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Likely impossible"),(1,"Unsolved, theoretically possible in >5 years"),(1.5,"Unsolved, theoretically possible in >2 years"),(2.0,"Theoretically feasible in <2 years"),(2.5,"Lab scale proven"),	(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale or not relavent")]
