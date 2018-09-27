@@ -25,13 +25,17 @@
 
 
     <link href="{% static "css/lib/calendar2/semantic.ui.min.css" %}" rel="stylesheet">
-    <link href="{% static "css/lib/calendar2/pignose.calendar.min.css" %}" rel="stylesheet">
+   <!-- <link href="{% static "css/lib/calendar2/pignose.calendar.min.css" %}" rel="stylesheet"> -->
     <link href="{% static "css/lib/owl.carousel.min.css" %}" rel="stylesheet" />
     <link href="{% static "css/lib/owl.theme.default.min.css" %}" rel="stylesheet" />
     <link href="{% static "css/helper.css" %}" rel="stylesheet">
     <link href="{% static "css/style.css" %}" rel="stylesheet">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js" integrity="sha256-XF29CBwU1MWLaGEnsELogU6Y6rcc5nCkhhx89nFMIDQ=" crossorigin="anonymous"></script>
+    <script src="https://d3js.org/d3.v3.js"></script> <!-- NOTE NEEDS V3 AT MOMENT, EVEN THOUGH 5 IS OUT -->
+
+    <script src=" {% static "js/jsnetworkx.js" %}" ></script>
+
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:** -->
@@ -466,13 +470,12 @@
     <script src=" {% static "js/lib/sticky-kit-master/dist/sticky-kit.min.js" %}"></script>
     <!--Custom JavaScript -->
 
-
    
      <script src=" {% static "js/lib/morris-chart/raphael-min.js" %}"></script>
     <script src=" {% static "js/lib/morris-chart/morris.js" %}"></script>
     <script src=" {% static "js/lib/morris-chart/dashboard1-init.js" %}"></script>
 
-
+<!--
 	<script src="" {% static "js/lib/calendar-2/moment.latest.min.js" %}"></script>
     <script src=" {% static "js/lib/calendar-2/semantic.ui.min.js" %}"></script>
     <script src=" {% static "js/lib/calendar-2/prism.min.js" %}"></script>
@@ -481,7 +484,7 @@
 
     <script src=" {% static "js/lib/owl-carousel/owl.carousel.min.js" %}"></script>
     <script src=" {% static "js/lib/owl-carousel/owl.carousel-init.js" %}"></script>
-
+-->
     
 
     <script src=" {% static "js/scripts.js" %}"></script>
@@ -489,11 +492,7 @@
 
     <script src=" {% static "js/custom.min.js" %}"></script>
 
-        <script>
-.bootstrap-tagsinput {
-  width: 100%;
-}
-</script>
+
 
 <script>
 $('#id_technology').css('height', '100px');

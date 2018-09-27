@@ -401,6 +401,8 @@ def marketanalysis(request):
 		
 			reqandsoldf = pd.DataFrame(reandsolflt, columns = ["Product","Requirement","Status","Importance"])
 
+			print(reqandsoldf.head())
+
 			reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status').head()
 	
 			reqandsoldf.set_index(['Requirement'], inplace=True)
@@ -849,8 +851,10 @@ def addrequirement(request):
 				identifier = form.cleaned_data['mode'] # passed over only if form was in edit mode
 
 				if identifier: # i.e. we're in edit mode delete previous entity first
-					client.execute('match $x isa requirement, has identifier "'+identifier+'", has name $n, has summary $s, has confidence $c, has importance $st, has category $ca; delete $n, $s;')
+					client.execute('match $x isa requirement, has identifier "'+identifier+'", has name $n, has summary $s, has confidence $c via $cr, has importance $st via $sr, has category $ca via $car; delete $n, $s, $cr, $sr, $car;')
 					#### ***** DON'T DELETE SHARED ATTRIBUTSE BUT SHOULD DELETE RELATIONSHIP TOO THEM, CURRENTLY KEEPING HISTORY ******
+					
+
 
 					client.execute('match $x isa requirement, has identifier "'+identifier+'"; insert $x has name "'+name+'", has summary "'+summary+'", has importance '+importance+', has confidence '+confidence+', has category "'+category+'", has updated '+str(datetime.datetime.now().date())+';')
 					print("added new info")
