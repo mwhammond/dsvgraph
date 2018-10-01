@@ -121,7 +121,7 @@ def graph(request):
 	teamStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Inexperienced, poor fit or any version of slow moving"),(1.0,"Inexperienced but fast, good fit"),(2.0,"Inexperienced, good fit, with experienced advisors"),(2.5,"Experienced but without great record"),(3.5,"Experienced proven team"),(5.5,"Serial entrepreneurs or other big names")]
 	fundingStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No upstream investor pull or grants only"),(1.0,"Strong upstream investor interest"),(1.5,"Seed closed"),(2.0,"Seed HQ investors"),(2.5,"Series A closed"),(3.0,"Series A HQ investors"),(3.5,"Growth"),(4.0,"Growth HQ investors"),(4.5,"Minor exit (10s millions)"),(5.0,"Mid sized exit (100s millions)"),(5.5,"Major exit (billions)")]
 	clinicalStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(1.0,"Pre-clinical invitro"),(2.0,"Pre-clinical invivo"),(3.0,"Phase 1"),(4.0,"Phase 2"), (5.0,"Phase 3"), (6.0,"Sold / Partnership")]
-	binaryStatus=[(-1.0, "No"), (0.0, "Unknown"), (5.0, "Yes")]
+	binaryStatus=[(-1.0, "No"), (0.0, 'Unknown'), (1.0, "Yes")]
 	defaultOptions=[(0.0, 'Error - options failed to load')]
 
 
@@ -131,7 +131,7 @@ def graph(request):
 	print(list(reqandsolpivot)) # gets column names
 
 	# Two subplots, unpack the axes array immediately
-	f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(9, 3))
+	f, (ax) = plt.subplots(1, 1, figsize=(5, 3))
 	#fig, axes = plt.subplots(nrows=2, ncols=2)
 	#reqandsolpivot.plot(subplots=True, layout=(1,5), sharey=True, figsize=(9, 4))
 
@@ -140,11 +140,26 @@ def graph(request):
 	##	print(reqandsolpivot[])
 
 	# for each column that's not funding create a subplot
-	print(reqandsolpivot.head())
+	#print(reqandsolpivot.head())
 
 	ax = sns.boxplot(x="Allogeneic (scalable batch production)", y="IPO or exit value", data=reqandsolpivot)
+	ax.set_title('Exit valuation of autologous vs allogeneic therapy companies')
+	#ax.set_xticks([-1.0, 1.0, 5.0], ['Autologous', 'Unknown', 'Allogeneic'])
+	ax.set_xticklabels(['Allogeneic','Unknown','Autologous'], rotation='horizontal', fontsize=10)
+	#ax.yaxis.set_major_locator(ticker.MultipleLocator(5))
+	#ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
+	#ax.set_yticklabels(['Dead','In trouble','£0m','£50m','£100m','£150m'], rotation='horizontal', fontsize=10)
 
-	ax.set_title('Autologous scalability vs. IPO or exit value')
+
+	ax.set(xlabel='', ylabel='Exit valuation (£100s millions)')
+
+
+	#ax1 = sns.boxplot(x="Breadth potential of platform", y="IPO or exit value", data=reqandsolpivot)
+	#ax1.set_title('Breadth of platform vs. Exit valuation')
+
+	#ax2 = sns.boxplot(x="Clinical Progress", y="IPO or exit value", data=reqandsolpivot)
+	#ax2.set_title('Clinical progress vs exit valuation')
+
 	#reqandsolpivot.plot(ax=ax1,kind='scatter', x='Breadth potential of platform', y='Funding status', label='Breadth of platform', c='red')
 	
 	#reqandsolpivot.plot(ax=ax2,kind='scatter', x='Scalability of technology (Autologous vs. Allogeneic)', y='Funding status', label='Scalability of manufacture', c='blue')
