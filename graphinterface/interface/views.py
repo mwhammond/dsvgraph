@@ -143,7 +143,7 @@ def graph(request):
 	#print(reqandsolpivot.head())
 
 	ax = sns.boxplot(x="Allogeneic (scalable batch production)", y="IPO or exit value", data=reqandsolpivot)
-	ax.set_title('Exit valuation of autologous vs allogeneic therapy companies')
+	ax.set_title('Exit valuation of autologous vs allogeneic therapy companies', fontsize=10)
 	#ax.set_xticks([-1.0, 1.0, 5.0], ['Autologous', 'Unknown', 'Allogeneic'])
 	ax.set_xticklabels(['Allogeneic','Unknown','Autologous'], rotation='horizontal', fontsize=10)
 	#ax.yaxis.set_major_locator(ticker.MultipleLocator(5))
@@ -151,7 +151,7 @@ def graph(request):
 	#ax.set_yticklabels(['Dead','In trouble','£0m','£50m','£100m','£150m'], rotation='horizontal', fontsize=10)
 
 
-	ax.set(xlabel='', ylabel='Exit valuation (£100s millions)')
+	ax.set(xlabel='', ylabel='Exit valuation (£100s millions)', fontsize=10)
 
 
 	#ax1 = sns.boxplot(x="Breadth potential of platform", y="IPO or exit value", data=reqandsolpivot)
