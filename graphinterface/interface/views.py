@@ -149,9 +149,11 @@ def graph(request):
 	#ax.yaxis.set_major_locator(ticker.MultipleLocator(5))
 	#ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
 	#ax.set_yticklabels(['Dead','In trouble','£0m','£50m','£100m','£150m'], rotation='horizontal', fontsize=10)
+	ax.set_xlabel("",fontsize=10)
+	ax.set_ylabel("Exit valuation (£100s millions)",fontsize=10)
 
 
-	ax.set(xlabel='', ylabel='Exit valuation (£100s millions)', fontsize=10)
+	#ax.set(xlabel='', ylabel='Exit valuation (£100s millions)', fontsize=10)
 
 
 	#ax1 = sns.boxplot(x="Breadth potential of platform", y="IPO or exit value", data=reqandsolpivot)
