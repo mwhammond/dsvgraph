@@ -142,6 +142,8 @@ class addProduct2Form(forms.Form):
 			teamStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Inexperienced, poor fit or any version of slow moving"),(1.0,"Inexperienced but fast, good fit"),(2.0,"Inexperienced, good fit, with experienced advisors"),(2.5,"Experienced but without great record"),(3.5,"Experienced proven team"),(5.5,"Serial entrepreneurs or other big names")]
 			fundingStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No upstream investor pull or grants only"),(1.0,"Strong upstream investor interest"),(1.5,"Seed closed"),(2.0,"Seed HQ investors"),(2.5,"Series A closed"),(3.0,"Series A HQ investors"),(3.5,"Growth"),(4.0,"Growth HQ investors"),(4.5,"Minor exit (10s millions)"),(5.0,"Mid sized exit (100s millions)"),(5.5,"Major exit (billions)")]
 			clinicalStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(1.0,"Pre-clinical invitro"),(2.0,"Pre-clinical invivo"),(3.0,"Phase 1"),(4.0,"Phase 2"), (5.0,"Phase 3"), (6.0,"Sold / Partnership")]
+			IPOorExitStatus=[(-1.0,"Failed or likely fail"),(0.0,"Unknown"),(0.1,"10m"),(0.2,"20m"),(0.4,"30m"),(0.4,"40m"),(0.5,"50m"),(0.6,"60m"),(0.7,"70m"),(0.8,"80m"),(0.9,"90m"),(1.0,"100m"),(1.1,"110m"),(1.2,"120m"),(1.3,"130m"),(1.4,"140m"),(1.5,"150m"),(1.6,"160m"),(1.7,"170m"),(1.8,"180m"),(1.9,"190m"),(2.0,"200m"),(2.1,"210m"),(2.2,"220m"),(2.3,"230m"),(2.4,"240m"),(2.5,"250m"),(2.6,"260m"),(2.7,"270m"),(2.8,"280m"),(2.9,"290m"),(3.0,"300m"),(4.0,">300m")]
+
 			defaultOptions=[(0.0, 'Error - options failed to load')]
 
 			return {
@@ -154,7 +156,8 @@ class addProduct2Form(forms.Form):
 			"Team fit": teamStatus,
 			"Funding viability": fundingStatus,
 			"Clinical Stage": clinicalStatus,
-			"Binary": binaryStatus
+			"Binary": binaryStatus,
+			"Exit" : IPOorExitStatus
 			}.get(x, defaultOptions)    # 9 is default if x not found
 
 
@@ -645,7 +648,7 @@ class addMarketNeedForm(forms.Form):
 class addRequirementForm(forms.Form):
 
 
-	categories=[("Market size and growth potential","Market size and growth potential"),("Clinical Stage", "Clinical Stage"),("Defensibility", "Defensibility"),("Manufacturability","Manufacturability"),("Scalability and value capture","Scalability and value capture"),("Technical plan feasability","Technical plan feasability"),("Traction","Traction"),("Team fit","Team fit"),("Funding viability","Funding viability"), ("Binary", "Binary")]
+	categories=[("Exit", "Exit"),("Market size and growth potential","Market size and growth potential"),("Clinical Stage", "Clinical Stage"),("Defensibility", "Defensibility"),("Manufacturability","Manufacturability"),("Scalability and value capture","Scalability and value capture"),("Technical plan feasability","Technical plan feasability"),("Traction","Traction"),("Team fit","Team fit"),("Funding viability","Funding viability"), ("Binary", "Binary")]
 
 	pagetitle="Define key factors"
 

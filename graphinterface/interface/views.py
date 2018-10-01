@@ -111,7 +111,7 @@ def graph(request):
 
 	plt.close('all')
 
-
+	IPOorExitStatus=[(-1.0,"Failed or likely fail"),(0.0,"Unknown"),(0.1,"10m"),(0.2,"20m"),(0.4,"30m"),(0.4,"40m"),(0.5,"50m"),(0.6,"60m"),(0.7,"70m"),(0.8,"80m"),(0.9,"90m"),(1.0,"100m"),(1.1,"110m"),(1.2,"120m"),(1.3,"130m"),(1.4,"140m"),(1.5,"150m"),(1.6,"160m"),(1.7,"170m"),(1.8,"180m"),(1.9,"190m"),(2.0,"200m"),(2.1,"210m"),(2.2,"220m"),(2.3,"230m"),(2.4,"240m"),(2.5,"250m"),(2.6,"260m"),(2.7,"270m"),(2.8,"280m"),(2.9,"290m"),(3.0,"300m"),(4.0,">300m")]
 	marketStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No market identified"),(1.5,"Single small market -100s millions. Low growth"),(2.0,"Single small market - 100s millions. High growth"),(2.5,"Single mid-sized market low billons. Low growth"),(3.0,"Single mid-sized market - low billons. High growth"),(3.5,"Multiple mid-sized growing markets"),(4.0,"Single huge market - multi billions, low growth"),(4.5,"Single huge market -multi billions. High growth"),(5.0,"Multiple large markets. Not growing"),(5.5,"Multiple large markets. High growth")]
 	defenseStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"No defensibility"),(1.5,"Weak IP strategy"),(5.5,"Strong IP strategy")]
 	manuStatus=[(0.0,"Unknown"),(-1.0,"Key reason for failure, or current serious issues"),(0.5,"Likely impossible"),(1,"Unsolved, theoretically possible in >5 years"),(1.5,"Unsolved, theoretically possible in >2 years"),(2.0,"Theoretically feasible in <2 years"),(2.5,"Lab scale proven"),	(3.5,"Demonstrator scale proven"),(5.5,"Proven at scale or not relavent")]
@@ -142,9 +142,9 @@ def graph(request):
 	# for each column that's not funding create a subplot
 	print(reqandsolpivot.head())
 
-	ax = sns.boxplot(x="Allogeneic (scalable batch production)", y="Funding status", data=reqandsolpivot)
+	ax = sns.boxplot(x="Allogeneic (scalable batch production)", y="IPO or exit value", data=reqandsolpivot)
 
-	ax.set_title('Autologous scalability')
+	ax.set_title('Autologous scalability vs. IPO or exit value')
 	#reqandsolpivot.plot(ax=ax1,kind='scatter', x='Breadth potential of platform', y='Funding status', label='Breadth of platform', c='red')
 	
 	#reqandsolpivot.plot(ax=ax2,kind='scatter', x='Scalability of technology (Autologous vs. Allogeneic)', y='Funding status', label='Scalability of manufacture', c='blue')
@@ -406,9 +406,7 @@ def marketanalysis(request):
 		
 			reqandsoldf = pd.DataFrame(reandsolflt, columns = ["Product","Requirement","Status","Importance"])
 
-			print(reqandsoldf.head())
-
-			reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status').head()
+			reqandsolpivot = reqandsoldf.pivot(index='Product', columns='Requirement', values='Status')
 	
 			reqandsoldf.set_index(['Requirement'], inplace=True)
 
@@ -487,7 +485,6 @@ def marketanalysis(request):
 
 		
 			reqNameArray = json.dumps(reqNameArray)
-
 
 
 		# find sub markets and top markets
@@ -865,11 +862,12 @@ def addrequirement(request):
 					print("added new info")
 
 					# Delete specific relationships
-					client.execute('match $r ($x) isa requirementconnection; $x isa requirement has identifier "'+identifier+'"; delete $r;')
-					print("deleted relationships")
 					
+					#client.execute('match $x isa requirement has identifier "'+identifier+'"; (requirementconnection:$x, $b); $b has name $bn; get $bn, $n;'
+					#client.execute('match $r ($x) isa requirementconnection; $x isa requirement has identifier "'+identifier+'"; delete $r;')
+					#print("deleted relationships")
+					#*** TURNED OFF DELETING THE RELATIONSHIP BETWEEN NEED AND REQUIRMENT ON EDIT FOR NOW **** should only delete the one that we're currently working on, not all
 
-					# DON'T KNOW WHY SHOULDN'T DELETE IN THIS CASE - IF YOU DO IT DELETES ANOTHER RELATIONSHIP???!	
 				else:
 					# don't delete anything and create new identifier
 					identifier = str(uuid.uuid4())
@@ -895,7 +893,7 @@ def addrequirement(request):
 			else:
 				marketid = request.GET.get('marketid')
 				if marketid:
-					form = 	addRequirementForm(marketid=marketid, identifier=identifier) # i.e. we've just asked for a fresh form
+					form = 	addRequirementForm(marketid=marketid) # i.e. we've just asked for a fresh form
 					print("2")
 				else:
 					form = 	addRequirementForm(identifier=identifier)
