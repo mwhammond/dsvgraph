@@ -145,7 +145,7 @@ def graph(request):
 	ax = sns.boxplot(x="Allogeneic (scalable batch production)", y="IPO or exit value", data=reqandsolpivot)
 	ax.set_title('Exit valuation of autologous vs allogeneic therapy companies', fontsize=10)
 	#ax.set_xticks([-1.0, 1.0, 5.0], ['Autologous', 'Unknown', 'Allogeneic'])
-	ax.set_xticklabels(['Allogeneic','Autologous'], rotation='horizontal', fontsize=10)
+	ax.set_xticklabels(['Autologous','Allogeneic'], rotation='horizontal', fontsize=10)
 	#ax.yaxis.set_major_locator(ticker.MultipleLocator(5))
 	#ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
 	#ax.set_yticklabels(['Dead','In trouble','£0m','£50m','£100m','£150m'], rotation='horizontal', fontsize=10)
